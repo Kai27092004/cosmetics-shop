@@ -1,0 +1,19 @@
+# --- Dependencies (Thư viện) ---
+# Dòng này sẽ chặn node_modules ở bất kỳ đâu, kể cả trong folder backend
+node_modules/
+
+# --- Environment Variables (Bảo mật) ---
+# Chặn file .env ở bất kỳ thư mục con nào
+.env
+.env.local
+.env.test
+.env.production
+
+# --- Logs & System Files ---
+npm-debug.log*
+yarn-debug.log*
+logs/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
