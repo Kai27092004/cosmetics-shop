@@ -1,78 +1,110 @@
 const db = require('../models');
+const { getIO } = require('../socket'); // ✅ THÊM MỚI: Import Socket.IO
 
 // --- HÀM 1: TẠO ĐƠN HÀNG MỚI ---
 exports.createOrder = async (req, res) => {
-    const userId = req.userId; // Lấy từ middleware xác thực
+    const userId = req.userId;
     const { cartItems, shippingAddress, customerNotes } = req.body;
 
-    // Bắt đầu một transaction để đảm bảo toàn vẹn dữ liệu
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize. transaction();
 
     try {
-        // BƯỚC 1: TÍNH TỔNG TIỀN Ở SERVER ĐỂ ĐẢM BẢO AN TOÀN
+        // BƯỚC 1: TÍNH TỔNG TIỀN Ở SERVER
         let totalAmount = 0;
         const productIds = cartItems.map(item => item.id);
         const products = await db.Product.findAll({ where: { id: productIds } });
         
         for (const cartItem of cartItems) {
-            const product = products.find(p => p.id === cartItem.id);
-            if (!product) {
-                throw new Error(`Sản phẩm với ID ${cartItem.id} không tồn tại.`);
+            const product = products.find(p => p.id === cartItem. id);
+            if (! product) {
+                throw new Error(`Sản phẩm với ID ${cartItem.id} không tồn tại. `);
             }
-            if (product.stockQuantity < cartItem.quantity) {
-                throw new Error(`Không đủ số lượng cho sản phẩm: ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
+            if (product.stockQuantity < cartItem. quantity) {
+                throw new Error(`Không đủ số lượng cho sản phẩm:  ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
             }
             totalAmount += product.price * cartItem.quantity;
         }
 
-        // BƯỚC 2: TẠO ĐƠN HÀNG (ORDER)
+        // BƯỚC 2: TẠO ĐƠN HÀNG
         const order = await db.Order.create({
             userId,
             totalAmount,
             shippingAddress,
-            customerNotes // Thêm ghi chú của khách hàng
+            customerNotes
         }, { transaction: t });
 
-        // BƯỚC 3: TẠO CHI TIẾT ĐƠN HÀNG (ORDER ITEMS) VÀ CẬP NHẬT KHO
+        // BƯỚC 3: TẠO CHI TIẾT ĐƠN HÀNG VÀ CẬP NHẬT KHO
         for (const cartItem of cartItems) {
-            const product = products.find(p => p.id === cartItem.id);
-            // Tạo chi tiết đơn hàng
+            const product = products.find(p => p. id === cartItem.id);
+            
             await db.OrderItem.create({
                 orderId: order.id,
                 productId: product.id,
                 quantity: cartItem.quantity,
-                price: product.price // Lấy giá từ database, không tin tưởng giá từ client
+                price: product.price
             }, { transaction: t });
 
-            // Cập nhật số lượng tồn kho
-            product.stockQuantity -= cartItem.quantity;
+            product.stockQuantity -= cartItem. quantity;
             await product.save({ transaction: t });
         }
 
-        // Nếu mọi thứ thành công, commit transaction
         await t.commit();
+
+        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
+        try {
+            const io = getIO();
+            
+            // Lấy thông tin user để gửi notification
+            const user = await db.User.findByPk(userId, {
+                attributes: ['id', 'fullName', 'email']
+            });
+
+            // Gửi cho tất cả admin
+            io.to('role:admin').emit('order:new', {
+                orderId: order. id,
+                userId,
+                userName: user.fullName,
+                userEmail: user.email,
+                totalAmount:  order.totalAmount,
+                itemCount: cartItems.length,
+                timestamp: new Date(),
+                message: `🛒 Đơn hàng mới #${order.id} từ ${user.fullName}`
+            });
+
+            // Gửi cho user vừa đặt hàng
+            io. to(`user:${userId}`).emit('order:created', {
+                orderId: order.id,
+                status: 'pending',
+                totalAmount: order.totalAmount,
+                message: `✅ Đơn hàng #${order.id} của bạn đã được tạo thành công!`
+            });
+
+            console.log(`📡 Realtime notification sent for order #${order.id}`);
+        } catch (socketError) {
+            console.error('❌ Socket. IO error:', socketError. message);
+            // Không throw error để không ảnh hưởng đến việc tạo đơn hàng
+        }
         
         res.status(201).send({ 
             message: "Đặt hàng thành công!", 
-            orderId: order.id,
+            orderId: order. id,
             totalAmount: order.totalAmount
         });
 
     } catch (error) {
-        // Nếu có lỗi, rollback tất cả thay đổi trong transaction
         await t.rollback();
-        res.status(500).send({ message: "Đặt hàng thất bại: " + error.message });
+        res.status(500).send({ message: "Đặt hàng thất bại:  " + error.message });
     }
 };
 
 // --- HÀM 2: HỦY ĐƠN HÀNG (USER TỰ HỦY) ---
 exports.cancelOrder = async (req, res) => {
-    const userId = req.userId; 
+    const userId = req. userId; 
     const { orderId } = req.params;
     const t = await db.sequelize.transaction();
 
     try {
-        const order = await db.Order.findOne({
+        const order = await db. Order.findOne({
             where: {
                 id: orderId,
                 userId: userId,
@@ -98,7 +130,30 @@ exports.cancelOrder = async (req, res) => {
             });
         }
 
-        await t.commit();
+        await t. commit();
+
+        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
+        try {
+            const io = getIO();
+            
+            // Gửi cho admin
+            io.to('role:admin').emit('order:cancelled', {
+                orderId: order.id,
+                userId,
+                timestamp: new Date(),
+                message:  `❌ Đơn hàng #${order.id} đã bị hủy bởi khách hàng`
+            });
+
+            // Gửi cho user
+            io. to(`user:${userId}`).emit('order:statusChanged', {
+                orderId: order.id,
+                status: 'cancelled',
+                message: `Đơn hàng #${order.id} đã được hủy thành công`
+            });
+        } catch (socketError) {
+            console.error('❌ Socket.IO error:', socketError. message);
+        }
+
         res.status(200).send({ message: "Hủy đơn hàng thành công." });
 
     } catch (error) {
@@ -106,7 +161,6 @@ exports.cancelOrder = async (req, res) => {
         res.status(500).send({ message: "Lỗi khi hủy đơn hàng: " + error.message });
     }
 };
-
 
 // --- HÀM 3: CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (USER) ---
 exports.updateOrderStatus = async (req, res) => {
@@ -116,7 +170,7 @@ exports.updateOrderStatus = async (req, res) => {
 
     const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
-        return res.status(400).send({ message: "Trạng thái không hợp lệ." });
+        return res. status(400).send({ message: "Trạng thái không hợp lệ." });
     }
 
     try {
@@ -134,7 +188,7 @@ exports.updateOrderStatus = async (req, res) => {
         order.status = status;
         await order.save();
 
-        res.status(200).send({ message: `Cập nhật trạng thái đơn hàng thành công.`, order });
+        res.status(200).send({ message: `Cập nhật trạng thái đơn hàng thành công. `, order });
 
     } catch (error) {
         res.status(500).send({ message: "Lỗi khi cập nhật trạng thái đơn hàng: " + error.message });
@@ -161,13 +215,13 @@ exports.adminUpdateOrderStatus = async (req, res) => {
 
     const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     if (!status || !validStatuses.includes(status)) {
-        return res.status(400).send({ message: "Trạng thái không hợp lệ." });
+        return res. status(400).send({ message: "Trạng thái không hợp lệ." });
     }
 
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize. transaction();
 
     try {
-        const order = await db.Order.findByPk(orderId, {
+        const order = await db.Order. findByPk(orderId, {
             include: [{ model: db.OrderItem, as: 'items' }],
             transaction: t
         });
@@ -189,20 +243,64 @@ exports.adminUpdateOrderStatus = async (req, res) => {
             }
         }
 
+        const oldStatus = order.status;
         order.status = status;
         await order.save({ transaction: t });
 
         await t.commit();
         
-        const updatedOrder = await db.Order.findByPk(orderId, {
+        const updatedOrder = await db.Order. findByPk(orderId, {
             include: [{ model: db.User, as: 'user', attributes: ['id', 'fullName', 'email'] }]
         });
+
+        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
+        try {
+            const io = getIO();
+
+            const statusMessages = {
+                pending: 'Chờ xử lý',
+                processing: 'Đang xử lý',
+                shipped: 'Đang giao hàng',
+                delivered: 'Đã giao hàng',
+                cancelled: 'Đã hủy'
+            };
+
+            // Gửi cho user sở hữu đơn hàng
+            io.to(`user:${order.userId}`).emit('order:statusChanged', {
+                orderId: order.id,
+                oldStatus,
+                newStatus: status,
+                statusText: statusMessages[status],
+                timestamp: new Date(),
+                message: `📦 Đơn hàng #${order.id} đã chuyển sang trạng thái:  ${statusMessages[status]}`
+            });
+
+            // Gửi cho tất cả admin (để đồng bộ UI)
+            io.to('role:admin').emit('order:updated', {
+                orderId: order.id,
+                status,
+                userId: order.userId,
+                timestamp: new Date()
+            });
+
+            // Gửi cho room tracking đơn hàng cụ thể
+            io. to(`order:${orderId}`).emit('order:update', {
+                orderId: order.id,
+                status,
+                statusText: statusMessages[status],
+                timestamp: new Date()
+            });
+
+            console.log(`📡 Realtime notification sent for order #${order.id} status change:  ${oldStatus} → ${status}`);
+        } catch (socketError) {
+            console.error('❌ Socket.IO error:', socketError.message);
+        }
 
         res.status(200).send({ message: `Cập nhật trạng thái đơn hàng thành công.`, order: updatedOrder });
 
     } catch (error) {
         await t.rollback();
-        res.status(500).send({ message: "Lỗi khi cập nhật trạng thái đơn hàng: " + error.message });
+        res.status(500).send({ message: "Lỗi khi cập nhật trạng thái đơn hàng:  " + error.message });
     }
 };
 
@@ -221,7 +319,7 @@ exports.getAdminOrderDetails = async (req, res) => {
                 {
                     model: db.OrderItem,
                     as: 'items',
-                    include: [{
+                    include:  [{
                         model: db.Product,
                         as: 'product',
                         attributes: ['id', 'name', 'imageUrl']
@@ -234,20 +332,19 @@ exports.getAdminOrderDetails = async (req, res) => {
             return res.status(404).send({ message: 'Không tìm thấy đơn hàng.' });
         }
 
-        res.status(200).send(order);
+        res. status(200).send(order);
     } catch (error) {
         res.status(500).send({ message: 'Lỗi khi lấy chi tiết đơn hàng: ' + error.message });
     }
 };
 
-// --- HÀM 7: [ADMIN] XÓA ĐƠN HÀNG (CHỈ KHI ĐÃ HỦY) ---
+// --- HÀM 7: [ADMIN] XÓA ĐƠN HÀNG ---
 exports.adminDeleteOrder = async (req, res) => {
     const { orderId } = req.params;
-
     const t = await db.sequelize.transaction();
 
     try {
-        const order = await db.Order.findByPk(orderId, {
+        const order = await db. Order.findByPk(orderId, {
             include: [{ model: db.OrderItem, as: 'items' }],
             transaction: t
         });
@@ -259,7 +356,6 @@ exports.adminDeleteOrder = async (req, res) => {
 
         let cancelledDuringDelete = false;
 
-        // Nếu đơn chưa ở trạng thái cancelled, tự động hủy và hoàn kho trước khi xóa
         if (order.status !== 'cancelled') {
             for (const item of order.items) {
                 if (item.productId) {
@@ -276,8 +372,21 @@ exports.adminDeleteOrder = async (req, res) => {
         }
 
         await order.destroy({ transaction: t });
-
         await t.commit();
+
+        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
+        try {
+            const io = getIO();
+            
+            // Gửi cho admin
+            io.to('role:admin').emit('order:deleted', {
+                orderId:  order.id,
+                timestamp: new Date(),
+                message: `🗑️ Đơn hàng #${order.id} đã bị xóa`
+            });
+        } catch (socketError) {
+            console.error('❌ Socket.IO error:', socketError. message);
+        }
 
         return res.status(200).send({ 
             message: 'Xóa đơn hàng thành công.',
@@ -289,7 +398,7 @@ exports.adminDeleteOrder = async (req, res) => {
     }
 };
 
-// Public (authenticated) endpoint to get order status only (for frontend polling)
+// --- HÀM 8: LẤY TRẠNG THÁI ĐƠN HÀNG (PUBLIC) ---
 exports.getOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
