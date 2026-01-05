@@ -39,10 +39,18 @@ exports.getAllProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id, {
-            include: [{
-                model: Category,
-                as: 'category'
-            }]
+            include: [
+                {
+                    model: db.Category, // Đảm bảo biến db.Category hoạt động
+                    as: 'category'
+                },
+                // --- THÊM PHẦN LẤY ẢNH PHỤ ---
+                {
+                    model: db.ProductImage,
+                    as: 'images', // Phải khớp với 'as' trong product.model.js
+                    attributes: ['id', 'imageUrl'] // Chỉ lấy id và link ảnh cho gọn
+                }
+            ]
         });
         if (product) {
             res.status(200).send(product);
@@ -56,13 +64,15 @@ exports.getProductById = async (req, res) => {
 
 // Tạo sản phẩm mới (chỉ Admin)
 exports.createProduct = async (req, res) => {
+    const t = await db.sequelize.transaction();
     try {
         const {
             name,
             description,
             price,
             stockQuantity,
-            imageUrl,
+            imageUrl,    // Ảnh chính
+            subImages,   // Mảng chứa các link ảnh phụ. VD: ["link1.jpg", "link2.jpg"]
             sku,
             dimensions,
             material,
@@ -71,12 +81,12 @@ exports.createProduct = async (req, res) => {
 
         // Chuẩn hóa đường dẫn ảnh về dạng "/upload/ten-anh.jpg"
         let normalizedImageUrl = imageUrl || '';
-        if (normalizedImageUrl) {
-            const parts = normalizedImageUrl.split('/');
-            const filename = parts[parts.length - 1];
-            normalizedImageUrl = `/upload/${filename}`;
+        if (normalizedImageUrl && !normalizedImageUrl.startsWith('/upload/')) {
+             // Logic này tùy thuộc vào cách Frontend gửi lên, giữ nguyên logic cũ của bạn nếu cần
+             // Hoặc nếu bạn gửi full path thì có thể bỏ qua bước check này
         }
 
+        // 1. Tạo Sản phẩm chính
         const product = await Product.create({
             name,
             description,
@@ -87,10 +97,30 @@ exports.createProduct = async (req, res) => {
             dimensions: dimensions || null,
             material: material || null,
             categoryId: categoryId ? Number(categoryId) : null
+        }, { transaction: t });
+        // 2. Lưu danh sách ảnh phụ (nếu có)
+        if (subImages && Array.isArray(subImages) && subImages.length > 0) {
+            const imageRecords = subImages.map(imgUrl => ({
+                productId: product.id,
+                imageUrl: imgUrl
+            }));
+            
+            // Dùng bulkCreate để thêm nhiều dòng cùng lúc cho nhanh
+            await db.ProductImage.bulkCreate(imageRecords, { transaction: t });
+        }
+
+        // Nếu mọi thứ OK, lưu vào DB
+        await t.commit();
+    // Trả về kết quả
+        res.status(201).send({
+            message: "Tạo sản phẩm thành công!",
+            data: product
         });
-        res.status(201).send(product);
+
     } catch (error) {
-        res.status(500).send({ message: error.message });
+        // Nếu có lỗi, hủy bỏ mọi thao tác
+        await t.rollback();
+        res.status(500).send({ message: "Lỗi khi tạo sản phẩm: " + error.message });
     }
 };
 

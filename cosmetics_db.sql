@@ -1,7 +1,6 @@
 SET NAMES utf8mb4;
 
--- Uncomment dòng dưới nếu bạn muốn xóa CSDL cũ và làm lại từ đầu
--- DROP DATABASE IF EXISTS furniture_db; 
+-- DROP DATABASE IF EXISTS cosmetics_db; -- Uncomment nếu muốn xóa làm lại từ đầu
 
 CREATE DATABASE IF NOT EXISTS cosmetics_db 
 CHARACTER SET utf8mb4 
@@ -10,17 +9,17 @@ COLLATE utf8mb4_unicode_ci;
 USE cosmetics_db;
 
 -- =====================================================================
--- BƯỚC 2: TẠO TẤT CẢ CẤU TRÚC BẢNG (SCHEMA - DDL)
+-- BƯỚC 1: TẠO CẤU TRÚC BẢNG (SCHEMA)
 -- =====================================================================
 
--- Bảng `Users`: Lưu trữ thông tin người dùng
+-- 1. Bảng Users
 CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fullName VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NULL, -- CHO PHÉP NULL vì Google login
-    googleId VARCHAR(255) NULL UNIQUE, -- MỚI: Lưu Google ID
-    avatar VARCHAR(500) NULL, -- MỚI: Lưu URL ảnh đại diện
+    password VARCHAR(255) NULL,
+    googleId VARCHAR(255) NULL UNIQUE,
+    avatar VARCHAR(500) NULL,
     phone VARCHAR(20) NULL,
     address TEXT NULL,
     role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
@@ -28,8 +27,7 @@ CREATE TABLE Users (
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
--- Bảng `Categories`: Lưu trữ danh mục sản phẩm
+-- 2. Bảng Categories
 CREATE TABLE Categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
@@ -38,26 +36,34 @@ CREATE TABLE Categories (
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
--- Bảng `Products`: Lưu trữ thông tin sản phẩm
+-- 3. Bảng Products
 CREATE TABLE Products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     stockQuantity INT NOT NULL DEFAULT 0,
-    imageUrl VARCHAR(255) NOT NULL,
+    imageUrl VARCHAR(255) NOT NULL, -- Ảnh chính (Thumbnail)
     sku VARCHAR(100) UNIQUE NULL, 
-    dimensions VARCHAR(255) NULL, 
-    material VARCHAR(255) NULL, 
+    dimensions VARCHAR(255) NULL, -- Dùng lưu dung tích (ml/g)
+    material VARCHAR(255) NULL,   -- Dùng lưu thành phần chính
     categoryId INT NULL,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (categoryId) REFERENCES Categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- 4. Bảng ProductImages (MỚI: Lưu ảnh phụ)
+CREATE TABLE ProductImages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    productId INT NOT NULL,
+    imageUrl VARCHAR(255) NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (productId) REFERENCES Products(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
--- Bảng `Orders`: Lưu trữ thông tin đơn hàng
+-- 5. Bảng Orders
 CREATE TABLE Orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId INT NOT NULL,
@@ -70,127 +76,150 @@ CREATE TABLE Orders (
     FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
--- Bảng `OrderItems`: Bảng trung gian chi tiết đơn hàng
+-- 6. Bảng OrderItems
 CREATE TABLE OrderItems (
     id INT AUTO_INCREMENT PRIMARY KEY,
     orderId INT NOT NULL,
     productId INT NULL,
     quantity INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL, -- Giá tại thời điểm đặt hàng
+    price DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (orderId) REFERENCES Orders(id) ON DELETE CASCADE,
     FOREIGN KEY (productId) REFERENCES Products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
-
--- Bảng `EmailTemplates`: Lưu trữ các mẫu email
+-- 7. Bảng EmailTemplates
 CREATE TABLE IF NOT EXISTS EmailTemplates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE, 
     subject VARCHAR(500) NOT NULL, 
-    content TEXT NOT NULL, -- Hỗ trợ HTML
+    content TEXT NOT NULL,
     description TEXT NULL, 
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
--- Bảng `EmailLogs`: Lưu lịch sử gửi email
+-- 8. Bảng EmailLogs
 CREATE TABLE IF NOT EXISTS EmailLogs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    userId INT NULL, -- Người nhận (nếu là user)
+    userId INT NULL,
     recipientEmail VARCHAR(255) NOT NULL, 
     recipientName VARCHAR(255) NULL, 
     subject VARCHAR(500) NOT NULL, 
     content TEXT NOT NULL, 
     status ENUM('sent', 'failed') NOT NULL DEFAULT 'sent', 
     errorMessage TEXT NULL, 
-    sentBy INT NOT NULL, -- Admin đã gửi (userId của admin)
+    sentBy INT NOT NULL,
     sentAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE SET NULL,
     FOREIGN KEY (sentBy) REFERENCES Users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-
--- =====================================================================
--- BƯỚC 3: TẠO CHỈ MỤC (INDEXES) ĐỂ TỐI ƯU TRUY VẤN
--- =====================================================================
+-- Tạo Indexes
 CREATE INDEX idx_email_logs_user ON EmailLogs(userId);
 CREATE INDEX idx_email_logs_status ON EmailLogs(status);
 CREATE INDEX idx_email_logs_sent_at ON EmailLogs(sentAt);
 
 -- =====================================================================
--- BƯỚC 4: THÊM DỮ LIỆU TĨNH (SEED DATA - DML)
+-- BƯỚC 2: THÊM DỮ LIỆU MẪU (SEED DATA)
 -- =====================================================================
 
--- Thêm `Users`
+-- 1. Users
 INSERT INTO `Users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
 ('Quản Trị Viên', 'admin@email.com', '$2a$12$78cga50NK6qxk35cpjwlKetU9VJvTUpI0UhfinwAQdSUH/QyO3itO', '0987654321', '123 Đường Admin, Quận 1, TP.HCM', 'admin'),
 ('Nguyễn Văn An', 'nguyen.an@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0912345678', '111 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội', 'customer'),
 ('Trần Thị Bích', 'tran.bich@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0923456789', '222 Lê Lợi, Quận Hải Châu, Đà Nẵng', 'customer'),
 ('Lê Minh Cường', 'le.cuong@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0934567890', '333 Trần Hưng Đạo, Quận 5, TP.HCM', 'customer'),
-('Phạm Thị Dung', 'pham.dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer'),
-('Hoàng Văn Em', 'hoang.em@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0956789012', '555 Cầu Giấy, Quận Cầu Giấy, Hà Nội', 'customer'),
-('Võ Thị Giang', 'vo.giang@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0967890123', '666 Nguyễn Thị Minh Khai, Quận 1, TP.HCM', 'customer'),
-('Đỗ Minh Hải', 'do.hai@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0978901234', '777 Lý Thường Kiệt, Quận Tân Bình, TP.HCM', 'customer'),
-('Bùi Thị Hạnh', 'bui.hanh@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0989012345', '888 Hùng Vương, Quận 6, TP.HCM', 'customer'),
-('Phan Văn Kiên', 'phan.kien@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0901234567', '999 Quang Trung, Quận Gò Vấp, TP.HCM', 'customer');
+('Phạm Thị Dung', 'pham.dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer');
 
--- Thêm `Categories`
+-- 2. Categories
 INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
-(1, 'Giường', 'Những mẫu giường ngủ êm ái, mang lại giấc ngủ ngon và tô điểm cho phòng ngủ.'),
-(2, 'Tủ quần áo', 'Giải pháp lưu trữ thông minh với tủ quần áo, kệ sách, kệ trang trí.'),
-(3, 'Bàn trang điểm', 'Các loại bàn trang điểm với thiết kế đa dạng.'),
-(4, 'Sofa', 'Sofa băng, sofa góc cho phòng khách thêm sang trọng và ấm cúng.');
+(1, 'Kem dưỡng da', 'Kem dưỡng da mang lại làn da mềm mịn, cấp ẩm sâu và giúp nuôi dưỡng vẻ rạng ngời từ sâu bên trong.'),
+(2, 'Sữa rửa mặt', 'Làm sạch sâu bụi bẩn và bã nhờn nhẹ nhàng, giúp lỗ chân lông thông thoáng mà vẫn giữ độ ẩm tự nhiên cho da.'),
+(3, 'Dầu gội', 'Chăm sóc mái tóc chắc khỏe từ gốc đến ngọn, phục hồi hư tổn và lưu lại hương thơm quyến rũ suốt ngày dài.'),
+(4, 'Sữa tắm', 'Nuôi dưỡng làn da cơ thể mịn màng, trắng sáng với chiết xuất thiên nhiên, mang lại cảm giác thư giãn sảng khoái.');
 
--- Thêm `Products`
-INSERT INTO `Products` (`name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
-('Giường Diệp Mộc', 'Giường Diệp Mộc mang lại thiết kế dịu mắt với màu xanh nhẹ nhàng, tạo nên không gian êm ái và dễ chịu cho phòng ngủ của bạn.', 10000.00, 8, '/upload/giuong-diep-moc.jpg', 'GIUONG-MDF-001', '180cm x 200cm', 'Gỗ MDF', 1),
-('Giường Vải Nhung', 'Giường Vải Nhung được thiết kế để mang đến sự kết hợp hoàn hảo giữa phong cách hiện đại tối giản và sự thoải mái tối đa.', 10000.00, 10, '/upload/giuong-nhung.jpg', 'GIUONG-KHUNG-GO-TU-NHIEN-002', '140cm x 200cm', 'Vải nhung, khung gỗ tự nhiên', 1),
-('Giường Da', 'Giường da được thiết kế để mang đến sự kết hợp hoàn hảo giữa chất liệu da PU cao cấp và phong cách hiện đại, mang lại sự thoải mái và đẳng cấp cho không gian sống của bạn.', 10000.00, 5, '/upload/giuong-da.jpg', 'GIUONG-KHUNG-GO-TU-NHIEN-003', '180cm x 200cm', 'Vải da, khung gỗ tự nhiên', 1),
-('Giường Gỗ MDF', 'Thiết kế giường hộp tối giản không chỉ tạo ra vẻ đẹp thanh lịch mà còn giải quyết vấn đề của việc rơi đồ cá nhân dưới giường, nhờ việc loại bỏ chân giường.', 10000.00, 12, '/upload/giuong-mdf.jpg', 'GIUONG-MDF-002', '180cm x 200cm', 'Gỗ MDF', 1),
-('Tủ Áo Diệp Mộc', 'Khung tủ được thiết kế với nhiều ngăn đa dạng, bao gồm hộc tủ, kệ, sào treo và hộc tủ có khóa, cung cấp giải pháp lưu trữ tối ưu cho quần áo và phụ kiện.', 1200000.00, 25, '/upload/tu-ao-diep-moc.jpg', 'TU-AO-001', '160cm x 55cm x 200cm', 'Gỗ MDF phủ Melamine', 2),
-('Tủ Áo Diệp Nhiên', 'Kích thước rộng rãi, cung cấp không gian lưu trữ rộng lớn, phù hợp với nhiều nhu cầu sử dụng. Màu sắc dịu nhẹ tạo nên sự hài hòa trong chính căn phòng của bạn.', 6500000.00, 12, '/upload/tu-ao-diep-nhien.jpg', 'TU-AO-002', '160cm x 55cm x 200cm', 'Gỗ MDF lõi xanh chống ẩm', 2),
-('Tủ Áo Cửa Lùa', 'Kích thước rộng rãi, cung cấp không gian lưu trữ rộng lớn, phù hợp với nhiều nhu cầu sử dụng.', 2100000.00, 20, '/upload/tu-ao-mdf.jpg', 'TU-AO-003', '220cm x 55cm x 240cm', 'Gỗ MDF phủ Melamine', 2),
-('Tủ Áo Gỗ MDF Phủ Sơn', 'Kích thước rộng rãi, cung cấp không gian lưu trữ rộng lớn, phù hợp với nhiều nhu cầu sử dụng.', 3800000.00, 15, '/upload/tu-ao-son.jpg', 'TU-AO-004', '160cm x 55cm x 200cm', 'Gỗ MDF phủ sơn', 2),
-('Bàn Trang Điểm Q1', 'Được làm từ vật liệu MDF chất lượng cao, với bề mặt phủ lớp melamine, chống trầy, ước, chống thấm nước, giúp dễ dàng vệ sinh và đảm bảo độ bền trong thời gian sử dụng.', 4500000.00, 15, '/upload/ban-trang-diem-q1.jpg', 'BAN-TRANG-DIEM-001', '140cm x 40cm x 160cm', 'Gỗ MDF', 3),
-('Bàn Trang Điểm Q2', 'Được làm từ vật liệu MDF chất lượng cao, với bề mặt phủ lớp melamine, chống trầy, ước, chống thấm nước, giúp dễ dàng vệ sinh và đảm bảo độ bền trong thời gian sử dụng.', 750000.00, 40, '/upload/ban-trang-diem-q2.jpg', 'BAN-TRANG-DIEM-002', '140cm x 40cm x 160cm', 'Gỗ MDF', 3),
-('Bàn Trang Điểm Q3', 'Được làm từ vật liệu MDF chất lượng cao, với bề mặt phủ lớp melamine, chống trầy, ước, chống thấm nước, giúp dễ dàng vệ sinh và đảm bảo độ bền trong thời gian sử dụng.', 3200000.00, 18, '/upload/ban-trang-diem-q3.jpg', 'BAN-TRANG-DIEM-003', '140cm x 40cm x 160cm', 'Gỗ MDF phủ sơn', 3),
-('Bàn Trang Điểm Q4', 'Được làm từ vật liệu MDF chất lượng cao, với bề mặt phủ lớp melamine, chống trầy, ước, chống thấm nước, giúp dễ dàng vệ sinh và đảm bảo độ bền trong thời gian sử dụng.', 2800000.00, 15, '/upload/ban-trang-diem-q4.jpg', 'BAN-TRANG-DIEM-004', '140cm x 40cm x 160cm', 'Gỗ MDF phủ Melamine', 3),
-('Sofa Ngọc Ngà', 'Vải thiết kế hiện đại, các đường nét mềm mại và tỉ mỉ, Sofa Ngọc Ngà mang đến sự hài hòa giữa tính thẩm mỹ và sự thoải mái', 7800000.00, 10, '/upload/sofa-ngoc-nga.jpg', 'SOFA-NI-001', '220cm x 85cm x 80cm', 'Vải nỉ, Gỗ dầu, Mút D40', 4),
-('Sofa Kết Nối', 'Vải kiểu dáng mô-đun, sofa có thể được sắp xếp theo nhiều cách khác nhau, phù hợp với mọi không gian sống, từ phong cách rộng rãi đến những căn hộ nhỏ,', 1850000.00, 20, '/upload/sofa-ket-noi.jpg', 'SOFA-NI-002', '240cm x 85cm x 70cm', 'Khung gỗ tần bì, Nệm mousse', 4),
-('Sofa Ôm Dịu', 'Vải thiết kế hiện đại pha chút nét mềm mại, sản phẩm này được tạo ra để trở thành trung tâm của mọi không gian sống.', 2500000.00, 18, '/upload/sofa-om-diu.jpg', 'SOFA-OM-DIU-001', '200cm x 60cm x 60cm', 'Khung gỗ tần bì, Lò xo dạng ống', 4),
-('Sofa Bed', 'Sở hữu thiết kế thời thượng với các đường nét tinh gọn và màu sắc trung tính, dễ dàng kết hợp với nhiều cách nội thất khác nhau.', 12500000.00, 7, '/upload/sofa-bed.jpg', 'SOFA-DA-001', '220cm x 85cm x 80cm', 'Da công nghiệp, Khung gỗ', 4);
+-- 3. Products (16 sản phẩm)
+INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
+(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường.', 150000.00, 50, '/upload/kem-vitamin-e.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
+(2, 'Kem Dưỡng Trắng Ngọc Trai', 'Chiết xuất ngọc trai tự nhiên giúp làm sáng da, mờ thâm nám và đều màu da hiệu quả.', 320000.00, 30, '/upload/kem-ngoc-trai.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
+(3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-collagen.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
+(4, 'Gel Dưỡng Da Lô Hội', 'Dạng gel thẩm thấu nhanh, không gây bết dính, làm dịu da cháy nắng và cấp nước tức thì cho làn da.', 120000.00, 100, '/upload/gel-lo-hoi.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
+(5, 'Sữa Rửa Mặt Trà Xanh', 'Làm sạch sâu lỗ chân lông, kiểm soát bã nhờn và ngăn ngừa mụn với tinh chất trà xanh kháng khuẩn.', 95000.00, 80, '/upload/srm-tra-xanh.jpg', 'SRM-001', '100ml', 'Trà xanh Nhật Bản', 2),
+(6, 'Sữa Rửa Mặt Dịu Nhẹ pH 5.5', 'Công thức cân bằng độ pH lý tưởng, phù hợp cho da nhạy cảm, làm sạch mà không gây khô căng.', 180000.00, 60, '/upload/srm-diu-nhe.jpg', 'SRM-002', '150ml', 'Ceramide, Glycerin', 2),
+(7, 'Sữa Rửa Mặt Than Tre', 'Hút sạch độc tố, bụi bẩn và dầu thừa, giúp da sáng khỏe và lỗ chân lông thông thoáng.', 110000.00, 45, '/upload/srm-than-tre.jpg', 'SRM-003', '100g', 'Than tre hoạt tính', 2),
+(8, 'Gel Rửa Mặt Tẩy Tế Bào Chết', 'Chứa các hạt massage nhỏ giúp loại bỏ tế bào chết nhẹ nhàng trong quá trình rửa mặt hàng ngày.', 135000.00, 50, '/upload/srm-tay-te-bao.jpg', 'SRM-004', '120ml', 'Hạt Jojoba', 2),
+(9, 'Dầu Gội Bưởi Kích Thích Mọc Tóc', 'Tinh dầu vỏ bưởi đậm đặc giúp ngăn rụng tóc, nuôi dưỡng nang tóc và kích thích mọc tóc con.', 250000.00, 40, '/upload/dau-goi-buoi.jpg', 'DAU-GOI-001', '300ml', 'Tinh dầu bưởi', 3),
+(10, 'Dầu Gội Thảo Dược Bồ Kết', 'Nấu từ bồ kết truyền thống kết hợp hương nhu, giúp tóc đen mượt, sạch gàu và giảm ngứa da đầu.', 180000.00, 55, '/upload/dau-goi-bo-ket.jpg', 'DAU-GOI-002', '500ml', 'Bồ kết, Hương nhu', 3),
+(11, 'Dầu Gội Phục Hồi Keratin', 'Bổ sung Keratin giúp tái tạo cấu trúc tóc, phục hồi mái tóc hư tổn do uốn, duỗi, nhuộm.', 350000.00, 30, '/upload/dau-goi-keratin.jpg', 'DAU-GOI-003', '450ml', 'Keratin, Dầu Argan', 3),
+(12, 'Dầu Gội Bạc Hà Mát Lạnh', 'Mang lại cảm giác mát lạnh sảng khoái, đánh bay gàu và bụi bẩn, giúp da đầu thư giãn.', 120000.00, 70, '/upload/dau-goi-bac-ha.jpg', 'DAU-GOI-004', '650ml', 'Tinh chất bạc hà', 3),
+(13, 'Sữa Tắm Dê Trắng Da', 'Tinh chất sữa dê giàu dưỡng chất giúp nuôi dưỡng làn da trắng sáng và mềm mịn như da em bé.', 150000.00, 60, '/upload/sua-tam-de.jpg', 'SUA-TAM-001', '1000ml', 'Sữa dê nguyên chất', 4),
+(14, 'Sữa Tắm Hương Nước Hoa', 'Lưu hương thơm nước hoa Pháp quyến rũ, sang trọng suốt nhiều giờ liền, tạo cảm giác tự tin.', 280000.00, 35, '/upload/sua-tam-nuoc-hoa.jpg', 'SUA-TAM-002', '500ml', 'Tinh dầu nước hoa', 4),
+(15, 'Sữa Tắm Hạt Mơ Tẩy Da Chết', 'Kết hợp các hạt massage từ hạt mơ giúp loại bỏ lớp sừng già cỗi, trả lại làn da láng mịn.', 160000.00, 40, '/upload/sua-tam-hat-mo.jpg', 'SUA-TAM-003', '400ml', 'Hạt mơ, Vitamin C', 4),
+(16, 'Sữa Tắm Thảo Mộc Gừng Nghệ', 'Giữ ấm cơ thể, lưu thông khí huyết và kháng khuẩn tốt cho da, đặc biệt phù hợp khi trời lạnh.', 190000.00, 25, '/upload/sua-tam-gung.jpg', 'SUA-TAM-004', '300ml', 'Gừng, Nghệ', 4);
 
--- Thêm `EmailTemplates`
+-- 4. ProductImages (5 ảnh phụ cho mỗi sản phẩm)
+INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
+-- Sản phẩm 1
+(1, '/upload/kem-vitamin-e-detail1.jpg'), (1, '/upload/kem-vitamin-e-detail2.jpg'), (1, '/upload/kem-vitamin-e-detail3.jpg'), (1, '/upload/kem-vitamin-e-usage.jpg'), (1, '/upload/kem-vitamin-e-texture.jpg'),
+-- Sản phẩm 2
+(2, '/upload/kem-ngoc-trai-detail1.jpg'), (2, '/upload/kem-ngoc-trai-detail2.jpg'), (2, '/upload/kem-ngoc-trai-detail3.jpg'), (2, '/upload/kem-ngoc-trai-usage.jpg'), (2, '/upload/kem-ngoc-trai-texture.jpg'),
+-- Sản phẩm 3
+(3, '/upload/kem-collagen-detail1.jpg'), (3, '/upload/kem-collagen-detail2.jpg'), (3, '/upload/kem-collagen-detail3.jpg'), (3, '/upload/kem-collagen-usage.jpg'), (3, '/upload/kem-collagen-texture.jpg'),
+-- Sản phẩm 4
+(4, '/upload/gel-lo-hoi-detail1.jpg'), (4, '/upload/gel-lo-hoi-detail2.jpg'), (4, '/upload/gel-lo-hoi-detail3.jpg'), (4, '/upload/gel-lo-hoi-usage.jpg'), (4, '/upload/gel-lo-hoi-texture.jpg'),
+-- Sản phẩm 5
+(5, '/upload/srm-tra-xanh-detail1.jpg'), (5, '/upload/srm-tra-xanh-detail2.jpg'), (5, '/upload/srm-tra-xanh-detail3.jpg'), (5, '/upload/srm-tra-xanh-usage.jpg'), (5, '/upload/srm-tra-xanh-texture.jpg'),
+-- Sản phẩm 6
+(6, '/upload/srm-diu-nhe-detail1.jpg'), (6, '/upload/srm-diu-nhe-detail2.jpg'), (6, '/upload/srm-diu-nhe-detail3.jpg'), (6, '/upload/srm-diu-nhe-usage.jpg'), (6, '/upload/srm-diu-nhe-texture.jpg'),
+-- Sản phẩm 7
+(7, '/upload/srm-than-tre-detail1.jpg'), (7, '/upload/srm-than-tre-detail2.jpg'), (7, '/upload/srm-than-tre-detail3.jpg'), (7, '/upload/srm-than-tre-usage.jpg'), (7, '/upload/srm-than-tre-texture.jpg'),
+-- Sản phẩm 8
+(8, '/upload/srm-tay-te-bao-detail1.jpg'), (8, '/upload/srm-tay-te-bao-detail2.jpg'), (8, '/upload/srm-tay-te-bao-detail3.jpg'), (8, '/upload/srm-tay-te-bao-usage.jpg'), (8, '/upload/srm-tay-te-bao-texture.jpg'),
+-- Sản phẩm 9
+(9, '/upload/dau-goi-buoi-detail1.jpg'), (9, '/upload/dau-goi-buoi-detail2.jpg'), (9, '/upload/dau-goi-buoi-detail3.jpg'), (9, '/upload/dau-goi-buoi-usage.jpg'), (9, '/upload/dau-goi-buoi-texture.jpg'),
+-- Sản phẩm 10
+(10, '/upload/dau-goi-bo-ket-detail1.jpg'), (10, '/upload/dau-goi-bo-ket-detail2.jpg'), (10, '/upload/dau-goi-bo-ket-detail3.jpg'), (10, '/upload/dau-goi-bo-ket-usage.jpg'), (10, '/upload/dau-goi-bo-ket-texture.jpg'),
+-- Sản phẩm 11
+(11, '/upload/dau-goi-keratin-detail1.jpg'), (11, '/upload/dau-goi-keratin-detail2.jpg'), (11, '/upload/dau-goi-keratin-detail3.jpg'), (11, '/upload/dau-goi-keratin-usage.jpg'), (11, '/upload/dau-goi-keratin-texture.jpg'),
+-- Sản phẩm 12
+(12, '/upload/dau-goi-bac-ha-detail1.jpg'), (12, '/upload/dau-goi-bac-ha-detail2.jpg'), (12, '/upload/dau-goi-bac-ha-detail3.jpg'), (12, '/upload/dau-goi-bac-ha-usage.jpg'), (12, '/upload/dau-goi-bac-ha-texture.jpg'),
+-- Sản phẩm 13
+(13, '/upload/sua-tam-de-detail1.jpg'), (13, '/upload/sua-tam-de-detail2.jpg'), (13, '/upload/sua-tam-de-detail3.jpg'), (13, '/upload/sua-tam-de-usage.jpg'), (13, '/upload/sua-tam-de-texture.jpg'),
+-- Sản phẩm 14
+(14, '/upload/sua-tam-nuoc-hoa-detail1.jpg'), (14, '/upload/sua-tam-nuoc-hoa-detail2.jpg'), (14, '/upload/sua-tam-nuoc-hoa-detail3.jpg'), (14, '/upload/sua-tam-nuoc-hoa-usage.jpg'), (14, '/upload/sua-tam-nuoc-hoa-texture.jpg'),
+-- Sản phẩm 15
+(15, '/upload/sua-tam-hat-mo-detail1.jpg'), (15, '/upload/sua-tam-hat-mo-detail2.jpg'), (15, '/upload/sua-tam-hat-mo-detail3.jpg'), (15, '/upload/sua-tam-hat-mo-usage.jpg'), (15, '/upload/sua-tam-hat-mo-texture.jpg'),
+-- Sản phẩm 16
+(16, '/upload/sua-tam-gung-detail1.jpg'), (16, '/upload/sua-tam-gung-detail2.jpg'), (16, '/upload/sua-tam-gung-detail3.jpg'), (16, '/upload/sua-tam-gung-usage.jpg'), (16, '/upload/sua-tam-gung-texture.jpg');
+
+
+-- 5. EmailTemplates
 INSERT INTO EmailTemplates (name, subject, content, description) VALUES
-('Chào mừng khách hàng mới', 'Chào mừng bạn đến với Furniture Shop!', 
+('Chào mừng khách hàng mới', 'Chào mừng bạn đến với Cosmetics Shop!', 
 '<h2>Xin chào {{customerName}}!</h2>
-<p>Chúng tôi rất vui mừng chào đón bạn đến với <strong>Furniture Shop</strong> - nơi cung cấp các sản phẩm nội thất chất lượng cao.</p>
-<p>Hãy khám phá bộ sưu tập đa dạng của chúng tôi và tìm kiếm những món đồ hoàn hảo cho ngôi nhà của bạn.</p>
-<p>Trân trọng,<br/>Đội ngũ Furniture Shop</p>',
+<p>Chúng tôi rất vui mừng chào đón bạn đến với <strong>Cosmetics Shop</strong> - thiên đường mỹ phẩm chính hãng.</p>
+<p>Hãy khám phá bộ sưu tập sản phẩm chăm sóc da và làm đẹp đa dạng của chúng tôi.</p>
+<p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email chào mừng khách hàng mới đăng ký'),
 
 ('Khuyến mãi đặc biệt', 'Ưu đãi đặc biệt dành cho bạn!', 
 '<h2>Chào {{customerName}}!</h2>
 <p>Chúng tôi có tin vui dành cho bạn! 🎉</p>
-<p><strong>GIẢM GIÁ LÊN ĐẾN 30%</strong> cho tất cả sản phẩm nội thất trong tháng này.</p>
-<p>Đừng bỏ lỡ cơ hội tuyệt vời này để làm mới không gian sống của bạn!</p>
-<p>Ghé thăm cửa hàng của chúng tôi ngay hôm nay.</p>
-<p>Trân trọng,<br/>Đội ngũ Furniture Shop</p>',
+<p><strong>GIẢM GIÁ LÊN ĐẾN 30%</strong> cho các dòng sản phẩm Kem dưỡng và Sữa rửa mặt trong tháng này.</p>
+<p>Đừng bỏ lỡ cơ hội chăm sóc làn da với giá ưu đãi!</p>
+<p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email thông báo khuyến mãi'),
 
 ('Cảm ơn đơn hàng', 'Cảm ơn bạn đã đặt hàng!', 
 '<h2>Xin chào {{customerName}}!</h2>
-<p>Cảm ơn bạn đã tin tưởng và đặt hàng tại <strong>Furniture Shop</strong>.</p>
-<p>Đơn hàng của bạn đang được xử lý và sẽ sớm được giao đến tận nơi.</p>
-<p>Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ với chúng tôi.</p>
-<p>Trân trọng,<br/>Đội ngũ Furniture Shop</p>',
+<p>Cảm ơn bạn đã tin tưởng và mua sắm tại <strong>Cosmetics Shop</strong>.</p>
+<p>Đơn hàng của bạn đang được xử lý và sẽ sớm được giao đến tận tay bạn.</p>
+<p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email cảm ơn sau khi khách hàng đặt hàng');
 
 
 -- =====================================================================
--- BƯỚC 5: TẠO THỦ TỤC (PROCEDURE) SINH DỮ LIỆU ĐỘNG
+-- BƯỚC 3: STORED PROCEDURE (Tạo đơn hàng tự động để test)
 -- =====================================================================
 DELIMITER $$
 
@@ -209,66 +238,61 @@ BEGIN
     DECLARE orderStatus ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled');
     DECLARE randomDate DATETIME;
 
-    -- Lặp 100 lần để tạo 100 đơn hàng
-    WHILE i < 100 DO
+    -- Lặp 50 lần để tạo 50 đơn hàng mẫu
+    WHILE i < 50 DO
         SET i = i + 1;
         SET totalOrderAmount = 0;
         
-        -- 1. Chọn ngẫu nhiên một userId (chỉ chọn khách hàng, id từ 2 đến 10)
-        SET randomUserId = FLOOR(2 + (RAND() * 9));
+        -- SỬA LẠI DÒNG NÀY: Giảm hệ số nhân từ 5 xuống 4
+        -- Công thức: FLOOR(Min + RAND() * (Max - Min + 1))
+        -- Muốn random từ 2 đến 5 => FLOOR(2 + RAND() * 4)
+        SET randomUserId = FLOOR(2 + (RAND() * 4));
         
-        -- Lấy địa chỉ của user để làm địa chỉ giao hàng
+        -- Kiểm tra xem user có tồn tại không trước khi lấy địa chỉ (để an toàn hơn)
         SELECT address INTO userAddress FROM Users WHERE id = randomUserId;
         
-        -- 2. Tạo một đơn hàng mới trong bảng `Orders` để lấy `orderId`
-        SET orderStatus = ELT(FLOOR(1 + RAND() * 5), 'pending', 'processing', 'shipped', 'delivered', 'cancelled');
-        SET randomDate = NOW() - INTERVAL FLOOR(RAND() * 365) DAY;
+        -- Chỉ tạo đơn nếu tìm thấy user (tránh lỗi null address nếu logic sai)
+        IF userAddress IS NOT NULL THEN
+            SET orderStatus = ELT(FLOOR(1 + RAND() * 5), 'pending', 'processing', 'shipped', 'delivered', 'cancelled');
+            SET randomDate = NOW() - INTERVAL FLOOR(RAND() * 180) DAY;
 
-        INSERT INTO Orders (userId, totalAmount, status, shippingAddress, customerNotes, createdAt)
-        VALUES (randomUserId, 0, orderStatus, userAddress, CONCAT('Ghi chú tự động cho đơn hàng ', i), randomDate);
-        
-        SET newOrderId = LAST_INSERT_ID();
-        
-        -- 3. Mỗi đơn hàng sẽ có từ 1 đến 5 sản phẩm khác nhau
-        SET itemsPerOrder = FLOOR(1 + (RAND() * 5));
-        SET j = 0;
-        
-        WHILE j < itemsPerOrder DO
-            SET j = j + 1;
+            INSERT INTO Orders (userId, totalAmount, status, shippingAddress, customerNotes, createdAt)
+            VALUES (randomUserId, 0, orderStatus, userAddress, CONCAT('Đơn hàng mỹ phẩm mẫu #', i), randomDate);
             
-            -- Chọn ngẫu nhiên một sản phẩm (id từ 1 đến 16)
-            SET randomProductId = FLOOR(1 + (RAND() * 16));
+            SET newOrderId = LAST_INSERT_ID();
             
-            SELECT price INTO productPrice FROM Products WHERE id = randomProductId;
+            -- Mỗi đơn có 1-3 sản phẩm
+            SET itemsPerOrder = FLOOR(1 + (RAND() * 3));
+            SET j = 0;
             
-            -- Số lượng mỗi sản phẩm từ 1 đến 3
-            SET randomQuantity = FLOOR(1 + (RAND() * 3));
+            WHILE j < itemsPerOrder DO
+                SET j = j + 1;
+                
+                -- Chọn sản phẩm ngẫu nhiên (id 1-16)
+                SET randomProductId = FLOOR(1 + (RAND() * 16));
+                
+                SELECT price INTO productPrice FROM Products WHERE id = randomProductId;
+                
+                SET randomQuantity = FLOOR(1 + (RAND() * 2));
+                
+                INSERT INTO OrderItems (orderId, productId, quantity, price)
+                VALUES (newOrderId, randomProductId, randomQuantity, productPrice);
+                
+                SET totalOrderAmount = totalOrderAmount + (productPrice * randomQuantity);
+            END WHILE;
             
-            INSERT INTO OrderItems (orderId, productId, quantity, price)
-            VALUES (newOrderId, randomProductId, randomQuantity, productPrice);
-            
-            SET totalOrderAmount = totalOrderAmount + (productPrice * randomQuantity);
-        END WHILE;
-        
-        -- 4. Cập nhật lại tổng tiền cho đơn hàng trong bảng `Orders`
-        UPDATE Orders SET totalAmount = totalOrderAmount WHERE id = newOrderId;
+            UPDATE Orders SET totalAmount = totalOrderAmount WHERE id = newOrderId;
+        END IF;
         
     END WHILE;
 END$$
 
 DELIMITER ;
 
--- =====================================================================
--- BƯỚC 6: GỌI THỦ TỤC ĐỂ SINH DỮ LIỆU ĐỘNG
--- =====================================================================
+-- Chạy lại thủ tục
 CALL GenerateRandomOrders();
 
--- Xóa procedure sau khi đã dùng xong (tùy chọn)
+-- Xóa Procedure sau khi dùng xong (để sạch DB)
 -- DROP PROCEDURE GenerateRandomOrders;
 
--- =====================================================================
--- BƯỚC 7: HOÀN TẤT
--- =====================================================================
 COMMIT;
-
--- (Kết thúc file)
