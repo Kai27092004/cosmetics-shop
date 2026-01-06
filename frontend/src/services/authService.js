@@ -41,17 +41,27 @@ export const authService = {
         password: credentials.password,
       });
 
+      // Backend trả về flat object với accessToken
+      const token = data.accessToken;
+      const user = {
+        id: data.id,
+        fullName: data.fullName,
+        email: data.email,
+        role: data.role,
+        avatar: data.avatar
+      };
+
       // Lưu token vào localStorage
-      if (data.token) {
-        localStorage.setItem('userToken', data.token);
+      if (token) {
+        localStorage.setItem('userToken', token);
         console.log('✅ [Auth Service] Token saved to localStorage');
       }
 
-      console.log('✅ [Auth Service] Login successful:', data.user);
-      return data;
+      console.log('✅ [Auth Service] Login successful:', user);
+      return { user, token };
     } catch (error) {
       console.error('❌ [Auth Service] Login failed:', error.response?.data || error.message);
-      throw error. response?.data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -132,27 +142,37 @@ export const authService = {
    */
   adminLogin: async (credentials) => {
     try {
-      console. log('🔐 [Auth Service] Admin logging in:', credentials.email);
+      console.log('🔐 [Auth Service] Admin logging in:', credentials.email);
       
       const { data } = await adminAPI.post(API_ENDPOINTS.LOGIN, {
         email: credentials.email,
         password: credentials.password,
       });
 
+      // Backend trả về flat object với accessToken
+      const token = data.accessToken;
+      const user = {
+        id: data.id,
+        fullName: data.fullName,
+        email: data.email,
+        role: data.role,
+        avatar: data.avatar
+      };
+
       // Kiểm tra role phải là admin
-      if (data.user?. role !== 'admin') {
+      if (user.role !== 'admin') {
         console.error('❌ [Auth Service] User is not an admin');
         throw new Error('Bạn không có quyền truy cập trang quản trị');
       }
 
       // Lưu token vào localStorage
-      if (data. token) {
-        localStorage.setItem('adminToken', data.token);
+      if (token) {
+        localStorage.setItem('adminToken', token);
         console.log('✅ [Auth Service] Admin token saved to localStorage');
       }
 
-      console.log('✅ [Auth Service] Admin login successful:', data.user);
-      return data;
+      console.log('✅ [Auth Service] Admin login successful:', user);
+      return { user, token };
     } catch (error) {
       console.error('❌ [Auth Service] Admin login failed:', error.response?.data || error.message);
       throw error.response?.data || { message: error.message };

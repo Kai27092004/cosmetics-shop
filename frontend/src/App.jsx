@@ -14,6 +14,9 @@ import ProductDetail from './pages/client/ProductDetail'; // ✅ THÊM
 import Cart from './pages/client/Cart'; // ✅ THÊM
 import Login from './pages/auth/Login'; // ✅ THÊM
 import Register from './pages/auth/Register'; // ✅ THÊM
+import Checkout from './pages/client/Checkout'; // ✅ THÊM
+import OrderSuccess from './pages/client/OrderSuccess'; // ✅ THÊM
+import Profile from './pages/client/Profile'; // ✅ THÊM
 
 
 function App() {
