@@ -124,12 +124,17 @@ CREATE INDEX idx_email_logs_sent_at ON EmailLogs(sentAt);
 -- =====================================================================
 
 -- 1. Users
-INSERT INTO `Users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
+INSERT INTO `users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
 ('Quản Trị Viên', 'admin@email.com', '$2a$12$78cga50NK6qxk35cpjwlKetU9VJvTUpI0UhfinwAQdSUH/QyO3itO', '0987654321', '123 Đường Admin, Quận 1, TP.HCM', 'admin'),
 ('Nguyễn Văn An', 'nguyen.an@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0912345678', '111 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội', 'customer'),
 ('Trần Thị Bích', 'tran.bich@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0923456789', '222 Lê Lợi, Quận Hải Châu, Đà Nẵng', 'customer'),
 ('Lê Minh Cường', 'le.cuong@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0934567890', '333 Trần Hưng Đạo, Quận 5, TP.HCM', 'customer'),
-('Phạm Thị Dung', 'pham.dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer');
+('Phạm Thị Dung', 'pham.dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer'),
+('Hoàng Văn Em', 'hoang.em@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0956789012', '555 Cầu Giấy, Quận Cầu Giấy, Hà Nội', 'customer'),
+('Võ Thị Giang', 'vo.giang@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0967890123', '666 Nguyễn Thị Minh Khai, Quận 1, TP.HCM', 'customer'),
+('Đỗ Minh Hải', 'do.hai@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0978901234', '777 Lý Thường Kiệt, Quận Tân Bình, TP.HCM', 'customer'),
+('Bùi Thị Hạnh', 'bui.hanh@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0989012345', '888 Hùng Vương, Quận 6, TP.HCM', 'customer'),
+('Phan Văn Kiên', 'phan.kien@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0901234567', '999 Quang Trung, Quận Gò Vấp, TP.HCM', 'customer');
 
 -- 2. Categories
 INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
@@ -140,7 +145,7 @@ INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
 
 -- 3. Products (16 sản phẩm)
 INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
-(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường.', 150000.00, 50, '/upload/kem-vitamin-e.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
+(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường.', 150000.00, 50, '/upload/son-duong-am-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
 (2, 'Kem Dưỡng Trắng Ngọc Trai', 'Chiết xuất ngọc trai tự nhiên giúp làm sáng da, mờ thâm nám và đều màu da hiệu quả.', 320000.00, 30, '/upload/kem-ngoc-trai.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
 (3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-collagen.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
 (4, 'Gel Dưỡng Da Lô Hội', 'Dạng gel thẩm thấu nhanh, không gây bết dính, làm dịu da cháy nắng và cấp nước tức thì cho làn da.', 120000.00, 100, '/upload/gel-lo-hoi.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
@@ -160,7 +165,7 @@ INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `
 -- 4. ProductImages (5 ảnh phụ cho mỗi sản phẩm)
 INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 1
-(1, '/upload/kem-vitamin-e-detail1.jpg'), (1, '/upload/kem-vitamin-e-detail2.jpg'), (1, '/upload/kem-vitamin-e-detail3.jpg'), (1, '/upload/kem-vitamin-e-usage.jpg'), (1, '/upload/kem-vitamin-e-texture.jpg'),
+(1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'),
 -- Sản phẩm 2
 (2, '/upload/kem-ngoc-trai-detail1.jpg'), (2, '/upload/kem-ngoc-trai-detail2.jpg'), (2, '/upload/kem-ngoc-trai-detail3.jpg'), (2, '/upload/kem-ngoc-trai-usage.jpg'), (2, '/upload/kem-ngoc-trai-texture.jpg'),
 -- Sản phẩm 3
