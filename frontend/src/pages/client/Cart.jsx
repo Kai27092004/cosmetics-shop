@@ -129,7 +129,7 @@ export default function Cart() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg: grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
@@ -156,7 +156,7 @@ export default function Cart() {
                 <div className="flex-1 min-w-0">
                   <Link
                     to={`/products/${item.id}`}
-                    className="text-lg font-bold text-gray-900 hover: text-primary-600 block mb-2"
+                    className="text-lg font-bold text-gray-900 hover:text-primary-600 block mb-2"
                   >
                     {item.name}
                   </Link>

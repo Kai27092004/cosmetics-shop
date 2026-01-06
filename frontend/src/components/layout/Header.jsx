@@ -10,7 +10,7 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg: px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export default function Header() {
             </Link>
             <Link 
               to="/about" 
-              className="text-gray-700 hover: text-primary-600 font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
             >
               Giới thiệu
             </Link>
@@ -130,7 +130,7 @@ export default function Header() {
               <Link to="/" className="py-2 text-gray-700 hover:text-primary-600 font-medium">
                 Trang chủ
               </Link>
-              <Link to="/products" className="py-2 text-gray-700 hover: text-primary-600 font-medium">
+              <Link to="/products" className="py-2 text-gray-700 hover:text-primary-600 font-medium">
                 Sản phẩm
               </Link>
               <Link to="/about" className="py-2 text-gray-700 hover:text-primary-600 font-medium">
@@ -154,7 +154,7 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    <Link to="/login" className="block py-2 text-gray-700 hover: text-primary-600 font-medium">
+                    <Link to="/login" className="block py-2 text-gray-700 hover:text-primary-600 font-medium">
                       Đăng nhập
                     </Link>
                     <Link to="/register" className="block py-2 text-primary-600 hover:text-primary-700 font-medium">

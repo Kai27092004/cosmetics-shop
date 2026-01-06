@@ -6,9 +6,11 @@ import socketService from './services/socketService';
 // Layouts
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import AdminLayout from './components/layout/AdminLayout'; // ✅ THÊM
 
 // Protected Route
 import ProtectedRoute from './routes/ProtectedRoute';
+import AdminProtectedRoute from './routes/AdminProtectedRoute'; // ✅ THÊM
 
 // Pages
 import Home from './pages/client/Home';
@@ -20,6 +22,10 @@ import Register from './pages/auth/Register';
 import Checkout from './pages/client/Checkout';
 import OrderSuccess from './pages/client/OrderSuccess';
 import Profile from './pages/client/Profile';
+
+// Admin Pages
+import AdminLogin from './pages/admin/auth/AdminLogin'; // ✅ THÊM
+import Dashboard from './pages/admin/Dashboard'; // ✅ THÊM
 
 function App() {
   const { user, admin, initAuth } = useAuthStore();
@@ -54,70 +60,95 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <Header />
+      <Routes>
+        {/* ==================== CLIENT ROUTES (with Header/Footer) ==================== */}
+        <Route path="/*" element={
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/about" element={<div className="p-8">About Page (TODO)</div>} />
+                <Route path="/contact" element={<div className="p-8">Contact Page (TODO)</div>} />
+
+                {/* Protected Routes */}
+                <Route 
+                  path="/checkout" 
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/order-success" 
+                  element={
+                    <ProtectedRoute>
+                      <OrderSuccess />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+
+                {/* 404 */}
+                <Route path="*" element={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                      <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
+                      <p className="text-xl text-gray-600 mb-4">Trang không tồn tại</p>
+                      <a href="/" className="text-primary-600 hover:underline">
+                        ← Quay về trang chủ
+                      </a>
+                    </div>
+                  </div>
+                } />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        {/* ==================== ADMIN ROUTES (without Header/Footer) ==================== */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         
-        <main className="flex-1">
-          <Routes>
-            {/* ==================== PUBLIC ROUTES ==================== */}
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/about" element={<div className="p-8">About Page (TODO)</div>} />
-            <Route path="/contact" element={<div className="p-8">Contact Page (TODO)</div>} />
-
-            {/* ==================== PROTECTED ROUTES (CẦN LOGIN) ==================== */}
-            <Route 
-              path="/checkout" 
-              element={
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/order-success" 
-              element={
-                <ProtectedRoute>
-                  <OrderSuccess />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* ==================== ADMIN ROUTES ==================== */}
-            <Route path="/admin/login" element={<div className="p-8">Admin Login (TODO)</div>} />
-            <Route path="/admin" element={<div className="p-8">Admin Dashboard (TODO)</div>} />
-
-            {/* ==================== 404 ==================== */}
-            <Route path="*" element={
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                  <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
-                  <p className="text-xl text-gray-600 mb-4">Trang không tồn tại</p>
-                  <a href="/" className="text-primary-600 hover:underline">
-                    ← Quay về trang chủ
-                  </a>
-                </div>
+        <Route path="/admin" element={
+          <AdminProtectedRoute>
+            <AdminLayout />
+          </AdminProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          {/* Thêm các admin routes khác ở đây */}
+          
+          {/* 404 Admin */}
+          <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
+                <p className="text-xl text-gray-600 mb-4">Admin page not found</p>
+                <a href="/admin" className="text-primary-600 hover:underline">
+                  ← Back to Dashboard
+                </a>
               </div>
-            } />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
+            </div>
+          } />
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }
