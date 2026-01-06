@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
   ORDERS: '/orders',
   ORDER_DETAIL: (id) => `/orders/${id}`,
   ORDER_CANCEL: (id) => `/orders/${id}/cancel`,
-  MY_ORDERS: '/orders/my-orders',
+  MY_ORDERS: '/users/my-orders',
   
   // Admin
   ADMIN_ORDERS: '/orders',

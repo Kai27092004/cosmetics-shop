@@ -22,6 +22,64 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+// Chức năng: Cập nhật thông tin hồ sơ của người dùng đang đăng nhập.
+exports.updateProfile = async (req, res) => {
+    try {
+        const { fullName, phone, address } = req.body;
+        
+        const user = await User.findByPk(req.userId);
+        
+        if (!user) {
+            return res.status(404).send({ message: "Không tìm thấy người dùng." });
+        }
+
+        // Cập nhật thông tin
+        if (fullName !== undefined) user.fullName = fullName;
+        if (phone !== undefined) user.phone = phone;
+        if (address !== undefined) user.address = address;
+
+        await user.save();
+
+        // Trả về thông tin user đã cập nhật (không bao gồm password)
+        const updatedUser = await User.findByPk(req.userId, {
+            attributes: { exclude: ['password'] }
+        });
+
+        res.status(200).send(updatedUser);
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
+// Chức năng: Đổi mật khẩu của người dùng đang đăng nhập.
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const bcrypt = require('bcryptjs');
+        
+        const user = await User.findByPk(req.userId);
+        
+        if (!user) {
+            return res.status(404).send({ message: "Không tìm thấy người dùng." });
+        }
+
+        // Kiểm tra mật khẩu cũ
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        
+        if (!isPasswordValid) {
+            return res.status(400).send({ message: "Mật khẩu cũ không đúng." });
+        }
+
+        // Gán mật khẩu mới (hook beforeUpdate sẽ tự động hash)
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).send({ message: "Đổi mật khẩu thành công!" });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+};
+
 // Chức năng: Lấy lịch sử đơn hàng của người dùng đang đăng nhập.
 exports.getMyOrders = async (req, res) => {
     try {

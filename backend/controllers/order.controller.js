@@ -11,16 +11,16 @@ exports.createOrder = async (req, res) => {
     try {
         // BƯỚC 1: TÍNH TỔNG TIỀN Ở SERVER
         let totalAmount = 0;
-        const productIds = cartItems.map(item => item.id);
+        const productIds = cartItems.map(item => item.productId);
         const products = await db.Product.findAll({ where: { id: productIds } });
         
         for (const cartItem of cartItems) {
-            const product = products.find(p => p.id === cartItem. id);
-            if (! product) {
-                throw new Error(`Sản phẩm với ID ${cartItem.id} không tồn tại. `);
+            const product = products.find(p => p.id === cartItem.productId);
+            if (!product) {
+                throw new Error(`Sản phẩm với ID ${cartItem.productId} không tồn tại.`);
             }
-            if (product.stockQuantity < cartItem. quantity) {
-                throw new Error(`Không đủ số lượng cho sản phẩm:  ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
+            if (product.stockQuantity < cartItem.quantity) {
+                throw new Error(`Không đủ số lượng cho sản phẩm: ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
             }
             totalAmount += product.price * cartItem.quantity;
         }
@@ -35,7 +35,7 @@ exports.createOrder = async (req, res) => {
 
         // BƯỚC 3: TẠO CHI TIẾT ĐƠN HÀNG VÀ CẬP NHẬT KHO
         for (const cartItem of cartItems) {
-            const product = products.find(p => p. id === cartItem.id);
+            const product = products.find(p => p.id === cartItem.productId);
             
             await db.OrderItem.create({
                 orderId: order.id,
@@ -44,7 +44,7 @@ exports.createOrder = async (req, res) => {
                 price: product.price
             }, { transaction: t });
 
-            product.stockQuantity -= cartItem. quantity;
+            product.stockQuantity -= cartItem.quantity;
             await product.save({ transaction: t });
         }
 

@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuth from '../../hooks/useAuth';
+import orderService from '../../services/orderService';
+import { formatCurrency } from '../../utils/formatters';
+import { getImageUrl } from '../../utils/helpers';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Alert from '../../components/common/Alert';
+import Loading from '../../components/common/Loading';
 
 export default function Profile() {
   const { user, updateProfile, changePassword, logout } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'password' | 'orders'
+  const [activeTab, setActiveTab] = useState('profile');
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
-  // Profile form
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
@@ -17,10 +22,9 @@ export default function Profile() {
     address: user?.address || '',
   });
 
-  // Password form
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
-    newPassword:  '',
+    newPassword: '',
     confirmPassword: '',
   });
 
@@ -28,16 +32,46 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
+  useEffect(() => {
+    if (activeTab === 'orders' && orders.length === 0) {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const data = await orderService.getMyOrders();
+      setOrders(data);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setAlert({ type: 'error', message: 'Không thể tải đơn hàng' });
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const getOrderStatusText = (status) => {
+    const statusMap = {
+      pending: { text: 'Chờ xác nhận', color: 'text-yellow-600 bg-yellow-100' },
+      confirmed: { text: 'Đã xác nhận', color: 'text-blue-600 bg-blue-100' },
+      shipping: { text: 'Đang giao', color: 'text-purple-600 bg-purple-100' },
+      delivered: { text: 'Đã giao', color: 'text-green-600 bg-green-100' },
+      cancelled: { text: 'Đã hủy', color: 'text-red-600 bg-red-100' },
+    };
+    return statusMap[status] || { text: status, color: 'text-gray-600 bg-gray-100' };
+  };
+
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]:  '' }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const handlePasswordChange = (e) => {
-    const { name, value } = e. target;
+    const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -50,32 +84,30 @@ export default function Profile() {
     setAlert(null);
 
     const result = await updateProfile(profileData);
-
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type: 'success', message:  'Cập nhật thông tin thành công!' });
+      setAlert({ type: 'success', message: 'Cập nhật thông tin thành công!' });
     } else {
-      setAlert({ type: 'error', message:  result.error || 'Cập nhật thất bại' });
+      setAlert({ type: 'error', message: result.error || 'Cập nhật thất bại' });
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate
     const newErrors = {};
-    if (! passwordData.oldPassword) newErrors.oldPassword = 'Vui lòng nhập mật khẩu cũ';
+    if (!passwordData.oldPassword) newErrors.oldPassword = 'Vui lòng nhập mật khẩu cũ';
     if (!passwordData.newPassword) {
       newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
-    } else if (passwordData.newPassword. length < 6) {
+    } else if (passwordData.newPassword.length < 6) {
       newErrors.newPassword = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
     }
 
-    if (Object. keys(newErrors).length > 0) {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
@@ -84,8 +116,8 @@ export default function Profile() {
     setAlert(null);
 
     const result = await changePassword({
-      oldPassword: passwordData. oldPassword,
-      newPassword:  passwordData.newPassword,
+      oldPassword: passwordData.oldPassword,
+      newPassword: passwordData.newPassword,
     });
 
     setLoading(false);
@@ -93,6 +125,7 @@ export default function Profile() {
     if (result.success) {
       setAlert({ type: 'success', message: 'Đổi mật khẩu thành công!' });
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setErrors({});
     } else {
       setAlert({ type: 'error', message: result.error || 'Đổi mật khẩu thất bại' });
     }
@@ -100,25 +133,13 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg: px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Tài khoản của tôi
-          </h1>
-          <p className="text-gray-600">
-            Quản lý thông tin cá nhân và đơn hàng
-          </p>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Tài khoản của tôi</h1>
+        <p className="text-gray-600 mb-8">Quản lý thông tin cá nhân và đơn hàng</p>
 
-        {/* Alert */}
         {alert && (
           <div className="mb-6">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
+            <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
           </div>
         )}
 
@@ -127,70 +148,72 @@ export default function Profile() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow p-6">
               {/* User Info */}
-              <div className="text-center mb-6 pb-6 border-b">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-primary-600 font-bold text-3xl">
-                    {user?. fullName?.charAt(0).toUpperCase()}
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-white font-bold text-3xl">
+                    {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                   </span>
                 </div>
-                <h3 className="font-bold text-gray-900">{user?.fullName}</h3>
-                <p className="text-sm text-gray-600">{user?.email}</p>
+                <h2 className="text-xl font-bold text-gray-900">{user?.fullName}</h2>
+                <p className="text-sm text-gray-500">{user?.email}</p>
               </div>
 
-              {/* Menu */}
+              {/* Navigation */}
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('profile')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
                     activeTab === 'profile'
                       ? 'bg-primary-50 text-primary-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  📝 Thông tin cá nhân
+                  <span>👤</span>
+                  Thông tin cá nhân
                 </button>
 
                 <button
                   onClick={() => setActiveTab('password')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
                     activeTab === 'password'
                       ? 'bg-primary-50 text-primary-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  🔒 Đổi mật khẩu
+                  <span>🔒</span>
+                  Đổi mật khẩu
                 </button>
 
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
                     activeTab === 'orders'
                       ? 'bg-primary-50 text-primary-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  📦 Đơn hàng của tôi
+                  <span>📦</span>
+                  Đơn hàng của tôi
                 </button>
 
                 <button
                   onClick={logout}
-                  className="w-full text-left px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  🚪 Đăng xuất
+                  <span>🚪</span>
+                  Đăng xuất
                 </button>
               </nav>
             </div>
           </div>
 
-          {/* Content */}
+          {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-8">
               {/* Profile Tab */}
               {activeTab === 'profile' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Thông tin cá nhân
-                  </h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Thông tin cá nhân</h2>
 
                   <form onSubmit={handleProfileSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -234,12 +257,7 @@ export default function Profile() {
                     </div>
 
                     <div className="flex gap-4">
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        loading={loading}
-                        disabled={loading}
-                      >
+                      <Button type="submit" variant="primary" loading={loading} disabled={loading}>
                         Lưu thay đổi
                       </Button>
 
@@ -250,7 +268,7 @@ export default function Profile() {
                           fullName: user?.fullName || '',
                           email: user?.email || '',
                           phone: user?.phone || '',
-                          address: user?. address || '',
+                          address: user?.address || '',
                         })}
                         disabled={loading}
                       >
@@ -264,9 +282,7 @@ export default function Profile() {
               {/* Password Tab */}
               {activeTab === 'password' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Đổi mật khẩu
-                  </h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Đổi mật khẩu</h2>
 
                   <form onSubmit={handlePasswordSubmit} className="space-y-6 max-w-md">
                     <Input
@@ -302,12 +318,7 @@ export default function Profile() {
                       disabled={loading}
                     />
 
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      loading={loading}
-                      disabled={loading}
-                    >
+                    <Button type="submit" variant="primary" loading={loading} disabled={loading}>
                       Đổi mật khẩu
                     </Button>
                   </form>
@@ -317,19 +328,76 @@ export default function Profile() {
               {/* Orders Tab */}
               {activeTab === 'orders' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Đơn hàng của tôi
-                  </h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Đơn hàng của tôi</h2>
 
-                  <div className="text-center py-12">
-                    <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-. 707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-. 707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                    <p className="text-gray-600 mb-4">Chức năng đang phát triển</p>
-                    <p className="text-sm text-gray-500">
-                      Tính năng xem lịch sử đơn hàng sẽ được cập nhật sớm
-                    </p>
-                  </div>
+                  {loadingOrders ? (
+                    <div className="text-center py-12">
+                      <Loading size="lg" text="Đang tải đơn hàng..." />
+                    </div>
+                  ) : orders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-gray-600 mb-4">Bạn chưa có đơn hàng nào</p>
+                      <p className="text-sm text-gray-500">Hãy bắt đầu mua sắm để xem đơn hàng tại đây</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {orders.map((order) => {
+                        const statusInfo = getOrderStatusText(order.status);
+                        return (
+                          <div key={order.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-4 pb-4 border-b">
+                              <div>
+                                <p className="text-sm text-gray-500">Mã đơn hàng</p>
+                                <p className="font-bold text-gray-900">#{order.id}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusInfo.color}`}>
+                                  {statusInfo.text}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3 mb-4">
+                              {order.items?.map((item) => (
+                                <div key={item.id} className="flex gap-4">
+                                  <img
+                                    src={getImageUrl(item.product?.imageUrl)}
+                                    alt={item.product?.name}
+                                    className="w-16 h-16 object-cover rounded"
+                                    onError={(e) => {
+                                      e.target.src = 'https://via.placeholder.com/64?text=No+Image';
+                                    }}
+                                  />
+                                  <div className="flex-1">
+                                    <p className="font-medium text-gray-900">{item.product?.name}</p>
+                                    <p className="text-sm text-gray-500">x{item.quantity}</p>
+                                    <p className="text-sm font-semibold text-primary-600">
+                                      {formatCurrency(item.price)}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center justify-between pt-4 border-t">
+                              <div className="text-sm text-gray-500">
+                                <p>Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm text-gray-500">Tổng tiền</p>
+                                <p className="text-xl font-bold text-primary-600">
+                                  {formatCurrency(order.totalAmount)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

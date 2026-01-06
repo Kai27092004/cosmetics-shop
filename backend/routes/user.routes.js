@@ -8,6 +8,8 @@ const { isAdmin } = require('../middleware/auth.middleware');
 router.use(isAuthenticated);
 
 router.get('/profile', controller.getProfile);
+router.put('/profile', controller.updateProfile);
+router.put('/change-password', controller.changePassword);
 router.get('/my-orders', controller.getMyOrders);
 
 // Routes cho admin

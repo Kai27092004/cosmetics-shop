@@ -49,10 +49,11 @@ export default function Login() {
     return Object. keys(newErrors).length === 0;
   };
 
+    // Tìm dòng này trong handleSubmit: 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (! validateForm()) return;
 
     setLoading(true);
     setAlert(null);
@@ -66,9 +67,14 @@ export default function Login() {
 
     if (result.success) {
       setAlert({ type: 'success', message: 'Đăng nhập thành công!' });
+      
+      // Lấy redirect URL từ query params
+      const redirectUrl = searchParams.get('redirect') || '/';
+      
+      // Đợi một chút để state được cập nhật đầy đủ
       setTimeout(() => {
-        navigate(redirect);
-      }, 1000);
+        navigate(redirectUrl, { replace: true });
+      }, 500);
     } else {
       setAlert({ type: 'error', message: result.error || 'Đăng nhập thất bại' });
     }
