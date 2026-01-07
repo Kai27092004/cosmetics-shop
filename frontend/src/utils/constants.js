@@ -24,7 +24,10 @@ export const API_ENDPOINTS = {
   MY_ORDERS: '/users/my-orders',
   
   // Admin
-  ADMIN_ORDERS: '/orders',
+  ADMIN_ORDERS: '/orders/admin/all',
+  ADMIN_ORDER_DETAIL: (id) => `/orders/admin/${id}`,
+  ADMIN_ORDER_UPDATE_STATUS: (id) => `/orders/admin/${id}/status`,
+  ADMIN_ORDER_DELETE: (id) => `/orders/admin/${id}`,
   ADMIN_USERS: '/users',
   DASHBOARD_STATS: '/dashboard/stats',
 };
@@ -76,18 +79,18 @@ export const STORAGE_KEYS = {
 // ==================== WEBSOCKET EVENTS ====================
 export const SOCKET_EVENTS = {
   // Client → Server
-  JOIN_USER_ROOM: 'join: user',
-  JOIN_ROLE_ROOM: 'join: role',
-  JOIN_ORDER_ROOM: 'join: order',
+  JOIN_USER_ROOM: 'join:user',
+  JOIN_ROLE_ROOM: 'join:role',
+  JOIN_ORDER_ROOM: 'join:order',
   
   // Server → Client
   ORDER_NEW: 'order:new',
   ORDER_CREATED: 'order:created',
   ORDER_UPDATED: 'order:updated',
-  ORDER_STATUS_CHANGED: 'order: statusChanged',
-  ORDER_CANCELLED: 'order: cancelled',
+  ORDER_STATUS_CHANGED: 'order:statusChanged',
+  ORDER_CANCELLED: 'order:cancelled',
   ORDER_DELETED: 'order:deleted',
-  ORDER_UPDATE:  'order:update',
+  ORDER_UPDATE: 'order:update',
 };
 
 // ==================== VALIDATION RULES ====================

@@ -24,7 +24,7 @@ export const formatNumber = (number) => {
     return '0';
   }
 
-  return new Intl. NumberFormat('vi-VN').format(number);
+  return new Intl.NumberFormat('vi-VN').format(number);
 };
 
 /**
@@ -34,7 +34,7 @@ export const formatNumber = (number) => {
  * @returns {string} - Chuỗi ngày đã format
  */
 export const formatDate = (date, format = 'dd/MM/yyyy') => {
-  if (! date) return '';
+  if (!date) return '';
 
   const d = new Date(date);
   
@@ -53,7 +53,7 @@ export const formatDate = (date, format = 'dd/MM/yyyy') => {
       return `${day}/${month}/${year}`;
     case 'dd/MM/yyyy HH:mm':
       return `${day}/${month}/${year} ${hours}:${minutes}`;
-    case 'dd/MM/yyyy HH:mm: ss':
+    case 'dd/MM/yyyy HH:mm:ss':
       return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     case 'yyyy-MM-dd': 
       return `${year}-${month}-${day}`;

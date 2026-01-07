@@ -110,7 +110,7 @@ exports.cancelOrder = async (req, res) => {
                 userId: userId,
                 status: 'pending'
             },
-            include: [{ model: db.OrderItem, as: 'items' }],
+            include: [{ model: db.OrderItem, as: 'orderItems' }],
             transaction: t
         });
 
@@ -122,7 +122,7 @@ exports.cancelOrder = async (req, res) => {
         order.status = 'cancelled';
         await order.save({ transaction: t });
 
-        for (const item of order.items) {
+        for (const item of order.orderItems) {
             await db.Product.increment('stockQuantity', {
                 by: item.quantity,
                 where: { id: item.productId },
@@ -200,7 +200,22 @@ exports.getAllOrders = async (req, res) => {
     try {
         const orders = await db.Order.findAll({
             order: [['createdAt', 'DESC']],
-            include: [{ model: db.User, as: 'user', attributes: ['id', 'fullName', 'email'] }]
+            include: [
+                { 
+                    model: db.User, 
+                    as: 'user', 
+                    attributes: ['id', 'fullName', 'email'] 
+                },
+                {
+                    model: db.OrderItem,
+                    as: 'orderItems',
+                    include: [{
+                        model: db.Product,
+                        as: 'product',
+                        attributes: ['id', 'name', 'imageUrl', 'price']
+                    }]
+                }
+            ]
         });
         res.status(200).send(orders);
     } catch (error) {
@@ -222,7 +237,7 @@ exports.adminUpdateOrderStatus = async (req, res) => {
 
     try {
         const order = await db.Order. findByPk(orderId, {
-            include: [{ model: db.OrderItem, as: 'items' }],
+            include: [{ model: db.OrderItem, as: 'orderItems' }],
             transaction: t
         });
 
@@ -232,7 +247,7 @@ exports.adminUpdateOrderStatus = async (req, res) => {
         }
 
         if (order.status !== 'cancelled' && status === 'cancelled') {
-            for (const item of order.items) {
+            for (const item of order.orderItems) {
                 if (item.productId) {
                     await db.Product.increment('stockQuantity', {
                         by: item.quantity,
@@ -318,8 +333,8 @@ exports.getAdminOrderDetails = async (req, res) => {
                 },
                 {
                     model: db.OrderItem,
-                    as: 'items',
-                    include:  [{
+                    as: 'orderItems',
+                    include: [{
                         model: db.Product,
                         as: 'product',
                         attributes: ['id', 'name', 'imageUrl']
@@ -344,8 +359,8 @@ exports.adminDeleteOrder = async (req, res) => {
     const t = await db.sequelize.transaction();
 
     try {
-        const order = await db. Order.findByPk(orderId, {
-            include: [{ model: db.OrderItem, as: 'items' }],
+        const order = await db.Order.findByPk(orderId, {
+            include: [{ model: db.OrderItem, as: 'orderItems' }],
             transaction: t
         });
 
@@ -357,7 +372,7 @@ exports.adminDeleteOrder = async (req, res) => {
         let cancelledDuringDelete = false;
 
         if (order.status !== 'cancelled') {
-            for (const item of order.items) {
+            for (const item of order.orderItems) {
                 if (item.productId) {
                     await db.Product.increment('stockQuantity', {
                         by: item.quantity,

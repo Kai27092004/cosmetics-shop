@@ -120,13 +120,13 @@ export const orderService = {
     try {
       console.log('📋 [Order Service] Admin fetching order:', orderId);
       
-      const { data } = await adminAPI.get(API_ENDPOINTS.ORDER_DETAIL(orderId));
+      const { data } = await adminAPI.get(API_ENDPOINTS.ADMIN_ORDER_DETAIL(orderId));
       
       console.log('✅ [Order Service] Order fetched');
       return data;
     } catch (error) {
       console.error('❌ [Order Service] Failed to fetch order:', error.response?.data || error.message);
-      throw error.response?. data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -138,9 +138,9 @@ export const orderService = {
    */
   updateOrderStatus: async (orderId, status) => {
     try {
-      console.log(`🔄 [Order Service] Admin updating order ${orderId} status to: `, status);
+      console.log(`🔄 [Order Service] Admin updating order ${orderId} status to:`, status);
       
-      const { data } = await adminAPI. put(API_ENDPOINTS.ORDER_DETAIL(orderId), { status });
+      const { data } = await adminAPI.put(API_ENDPOINTS.ADMIN_ORDER_UPDATE_STATUS(orderId), { status });
       
       console.log('✅ [Order Service] Order status updated successfully');
       
@@ -163,7 +163,7 @@ export const orderService = {
     try {
       console.log('🗑️ [Order Service] Admin deleting order:', orderId);
       
-      const { data } = await adminAPI.delete(API_ENDPOINTS.ORDER_DETAIL(orderId));
+      const { data } = await adminAPI.delete(API_ENDPOINTS.ADMIN_ORDER_DELETE(orderId));
       
       console.log('✅ [Order Service] Order deleted successfully');
       
@@ -171,7 +171,7 @@ export const orderService = {
       
       return data;
     } catch (error) {
-      console.error('❌ [Order Service] Failed to delete order:', error.response?. data || error.message);
+      console.error('❌ [Order Service] Failed to delete order:', error.response?.data || error.message);
       throw error.response?.data || { message: error.message };
     }
   },

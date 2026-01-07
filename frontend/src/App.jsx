@@ -11,6 +11,7 @@ import AdminLayout from './components/layout/AdminLayout'; // ✅ THÊM
 // Protected Route
 import ProtectedRoute from './routes/ProtectedRoute';
 import AdminProtectedRoute from './routes/AdminProtectedRoute'; // ✅ THÊM
+import OrderRoutes from './pages/admin/orders';
 
 // Pages
 import Home from './pages/client/Home';
@@ -24,8 +25,9 @@ import OrderSuccess from './pages/client/OrderSuccess';
 import Profile from './pages/client/Profile';
 
 // Admin Pages
-import AdminLogin from './pages/admin/auth/AdminLogin'; // ✅ THÊM
-import Dashboard from './pages/admin/Dashboard'; // ✅ THÊM
+import AdminLogin from './pages/admin/auth/AdminLogin';
+import Dashboard from './pages/admin/Dashboard';
+import ProductRoutes from './pages/admin/products'; // ✅ THÊM Products Routes
 
 function App() {
   const { user, admin, initAuth } = useAuthStore();
@@ -133,7 +135,12 @@ function App() {
         }>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
+          
+          {/* Products Routes */}
+          <Route path="products/*" element={<ProductRoutes />} />
+          
           {/* Thêm các admin routes khác ở đây */}
+          <Route path="orders/*" element={<OrderRoutes />} /> 
           
           {/* 404 Admin */}
           <Route path="*" element={
