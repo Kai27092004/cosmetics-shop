@@ -12,6 +12,8 @@ import AdminLayout from './components/layout/AdminLayout'; // ✅ THÊM
 import ProtectedRoute from './routes/ProtectedRoute';
 import AdminProtectedRoute from './routes/AdminProtectedRoute'; // ✅ THÊM
 import OrderRoutes from './pages/admin/orders';
+import CategoryManagement from './pages/admin/categories'; // ✅ THÊM
+import UserManagement from './pages/admin/users'; // ✅ THÊM
 
 // Pages
 import Home from './pages/client/Home';
@@ -135,12 +137,10 @@ function App() {
         }>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
-          
-          {/* Products Routes */}
           <Route path="products/*" element={<ProductRoutes />} />
-          
-          {/* Thêm các admin routes khác ở đây */}
           <Route path="orders/*" element={<OrderRoutes />} /> 
+          <Route path="categories/*" element={<CategoryManagement />} />
+          <Route path="users/*" element={<UserManagement />} />
           
           {/* 404 Admin */}
           <Route path="*" element={

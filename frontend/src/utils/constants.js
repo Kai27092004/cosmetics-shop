@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
   LOGOUT: '/auth/logout',
   PROFILE: '/users/profile',
   CHANGE_PASSWORD: '/users/change-password',
-  FORGOT_PASSWORD:  '/auth/forgot-password',
+  FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
   
   // Products
@@ -15,7 +15,7 @@ export const API_ENDPOINTS = {
   
   // Categories
   CATEGORIES: '/categories',
-  CATEGORY_DETAIL:  (id) => `/categories/${id}`,
+  CATEGORY_DETAIL: (id) => `/categories/${id}`,
   
   // Orders
   ORDERS: '/orders',
@@ -34,7 +34,7 @@ export const API_ENDPOINTS = {
 
 // ==================== ORDER STATUS ====================
 export const ORDER_STATUS = {
-  PENDING:  'pending',
+  PENDING: 'pending',
   PROCESSING: 'processing',
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
@@ -44,9 +44,9 @@ export const ORDER_STATUS = {
 export const ORDER_STATUS_LABELS = {
   pending: 'Chờ xử lý',
   processing: 'Đang xử lý',
-  shipped:  'Đang giao',
+  shipped: 'Đang giao',
   delivered: 'Đã giao',
-  cancelled:  'Đã hủy',
+  cancelled: 'Đã hủy',
 };
 
 export const ORDER_STATUS_COLORS = {
@@ -71,7 +71,7 @@ export const ADMIN_ITEMS_PER_PAGE = 10;
 export const STORAGE_KEYS = {
   USER_TOKEN: 'userToken',
   ADMIN_TOKEN: 'adminToken',
-  USER:  'user',
+  USER: 'user',
   ADMIN: 'admin',
   CART: 'cart-storage',
 };
@@ -97,7 +97,7 @@ export const SOCKET_EVENTS = {
 export const VALIDATION = {
   EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   PHONE_REGEX: /(84|0[3|5|7|8|9])+([0-9]{8})\b/,
-  PASSWORD_MIN_LENGTH:  6,
+  PASSWORD_MIN_LENGTH: 6,
   PASSWORD_STRONG_REGEX: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
 };
 

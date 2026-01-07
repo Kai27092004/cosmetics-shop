@@ -33,11 +33,11 @@ export const categoryService = {
       
       const { data } = await clientAPI.get(API_ENDPOINTS.CATEGORY_DETAIL(id));
       
-      console.log('✅ [Category Service] Category fetched:', data. name);
+      console.log('✅ [Category Service] Category fetched:', data.name);
       return data;
     } catch (error) {
       console.error('❌ [Category Service] Failed to fetch category:', error.response?.data || error.message);
-      throw error. response?.data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -77,7 +77,7 @@ export const categoryService = {
       console.log('✅ [Category Service] Category updated successfully');
       return data;
     } catch (error) {
-      console.error('❌ [Category Service] Failed to update category:', error.response?. data || error.message);
+      console.error('❌ [Category Service] Failed to update category:', error.response?.data || error.message);
       throw error.response?.data || { message: error.message };
     }
   },
@@ -91,12 +91,12 @@ export const categoryService = {
     try {
       console.log('📂 [Category Service] Deleting category:', id);
       
-      const { data } = await adminAPI. delete(API_ENDPOINTS. CATEGORY_DETAIL(id));
+      const { data } = await adminAPI.delete(API_ENDPOINTS.CATEGORY_DETAIL(id));
       
       console.log('✅ [Category Service] Category deleted successfully');
       return data;
     } catch (error) {
-      console.error('❌ [Category Service] Failed to delete category:', error.response?. data || error.message);
+      console.error('❌ [Category Service] Failed to delete category:', error.response?.data || error.message);
       throw error.response?.data || { message: error.message };
     }
   },
