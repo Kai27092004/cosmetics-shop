@@ -5,6 +5,7 @@ import socketService from './services/socketService';
 
 // Routes
 import AppRoutes from './routes';
+import ScrollToTop from './components/ScrollToTop'; 
 
 function App() {
   const { user, admin, initAuth } = useAuthStore();
@@ -39,6 +40,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AppRoutes />
     </BrowserRouter>
   );
