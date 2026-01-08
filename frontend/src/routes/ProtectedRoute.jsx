@@ -1,15 +1,17 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
+/**
+ * ProtectedRoute - Route guard cho user (customer)
+ * Chỉ cho phép user đã login truy cập
+ */
 export default function ProtectedRoute({ children }) {
-  const location = useLocation();
   const { user, isAuthenticated } = useAuthStore();
+  const location = useLocation();
 
-  // Kiểm tra cả isAuthenticated và user để chắc chắn
   if (!isAuthenticated || !user) {
-    // Lưu URL hiện tại để redirect sau khi login
-    const redirectUrl = `${location.pathname}${location.search}`;
-    return <Navigate to={`/login?redirect=${encodeURIComponent(redirectUrl)}`} replace />;
+    // Redirect về login, lưu current path để redirect lại sau khi login
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;

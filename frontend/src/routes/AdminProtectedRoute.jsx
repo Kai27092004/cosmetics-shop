@@ -1,10 +1,15 @@
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import { useAuthStore } from '../store/authStore';
 
+/**
+ * AdminProtectedRoute - Route guard cho admin
+ * Chỉ cho phép admin truy cập
+ */
 export default function AdminProtectedRoute({ children }) {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { admin, isAdmin } = useAuthStore();
 
-  if (!isAuthenticated || !isAdmin) {
+  if (! isAdmin || !admin) {
+    // Redirect về admin login
     return <Navigate to="/admin/login" replace />;
   }
 

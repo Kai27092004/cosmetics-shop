@@ -4,8 +4,9 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class', // ✅ THÊM
   theme: {
-    extend: {
+    extend:  {
       colors: {
         primary: {
           50: '#fdf2f8',
@@ -16,14 +17,11 @@ export default {
           500: '#ec4899',
           600: '#db2777',
           700: '#be185d',
-          800: '#9d174d',
+          800: '#9f1239',
           900: '#831843',
         },
       },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
     },
   },
-  plugins:  [],
+  plugins: [],
 }
