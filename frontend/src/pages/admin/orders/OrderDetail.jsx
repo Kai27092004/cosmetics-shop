@@ -9,7 +9,7 @@ import { ORDER_STATUS_LABELS } from '../../../utils/constants';
 import OrderStatusBadge from './components/OrderStatusBadge';
 import OrderTimeline from './components/OrderTimeline';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 
 export default function OrderDetail() {
@@ -19,7 +19,6 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     fetchOrder();
@@ -31,10 +30,7 @@ export default function OrderDetail() {
     const unsubscribe = on('order:statusChanged', (data) => {
       if (data.orderId === parseInt(id)) {
         console.log('🔔 [OrderDetail] Status changed:', data);
-        setAlert({ 
-          type: 'info', 
-          message: `Trạng thái đã thay đổi: ${ORDER_STATUS_LABELS[data.newStatus]}` 
-        });
+        showToast.info(`Trạng thái đã thay đổi: ${ORDER_STATUS_LABELS[data.newStatus]}`);
         fetchOrder(); // Refresh
       }
     });
@@ -48,7 +44,7 @@ export default function OrderDetail() {
       const data = await orderService.getOrderByIdAdmin(id);
       setOrder(data);
     } catch (error) {
-      setAlert({ type: 'error', message: 'Không thể tải thông tin đơn hàng' });
+      showToast.error('Không thể tải thông tin đơn hàng');
     } finally {
       setLoading(false);
     }
@@ -62,10 +58,10 @@ export default function OrderDetail() {
     try {
       setUpdating(true);
       await orderService.updateOrderStatus(id, newStatus);
-      setAlert({ type: 'success', message: 'Cập nhật trạng thái thành công!' });
+      showToast.success('Cập nhật trạng thái thành công!');
       fetchOrder();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Cập nhật thất bại' });
+      showToast.error(error.message || 'Cập nhật thất bại');
     } finally {
       setUpdating(false);
     }
@@ -116,15 +112,6 @@ export default function OrderDetail() {
 
         <OrderStatusBadge status={order.status} size="lg" />
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left:  Order Info */}

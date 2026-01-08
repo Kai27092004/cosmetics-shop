@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import useAuth from '../../../hooks/useAuth';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ export default function AdminLogin() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,7 +48,6 @@ export default function AdminLogin() {
     if (!validateForm()) return;
 
     setLoading(true);
-    setAlert(null);
 
     const result = await adminLogin({
       email: formData.email,
@@ -59,12 +57,12 @@ export default function AdminLogin() {
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type: 'success', message: 'Đăng nhập thành công!' });
+      showToast.success('Đăng nhập thành công!');
       setTimeout(() => {
         navigate('/admin/dashboard');
       }, 1000);
     } else {
-      setAlert({ type: 'error', message: result.error || 'Đăng nhập thất bại.  Vui lòng kiểm tra email và mật khẩu.' });
+      showToast.error(result.error || 'Đăng nhập thất bại.  Vui lòng kiểm tra email và mật khẩu.');
     }
   };
 
@@ -85,17 +83,6 @@ export default function AdminLogin() {
             Cosmetics Shop Management System
           </p>
         </div>
-
-        {/* Alert */}
-        {alert && (
-          <div className="mb-6">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
-          </div>
-        )}
 
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">

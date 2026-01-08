@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import orderService from '../../services/orderService';
 import { formatCurrency } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/helpers';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 import Loading from '../../components/common/Loading';
 
 export default function Profile() {
+  const location = useLocation();
   const { user, updateProfile, changePassword, logout } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('profile');
+  // Nếu có state từ navigation, dùng nó. Nếu không, mặc định là 'profile'
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'profile');
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
@@ -30,7 +33,13 @@ export default function Profile() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
+
+  // Đọc state từ navigation để mở tab tương ứng
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (activeTab === 'orders' && orders.length === 0) {
@@ -45,7 +54,7 @@ export default function Profile() {
       setOrders(data);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
-      setAlert({ type: 'error', message: 'Không thể tải đơn hàng' });
+      showToast.error('Không thể tải đơn hàng');
     } finally {
       setLoadingOrders(false);
     }
@@ -81,15 +90,14 @@ export default function Profile() {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setAlert(null);
 
     const result = await updateProfile(profileData);
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type: 'success', message: 'Cập nhật thông tin thành công!' });
+      showToast.success('Cập nhật thông tin thành công!');
     } else {
-      setAlert({ type: 'error', message: result.error || 'Cập nhật thất bại' });
+      showToast.error(result.error || 'Cập nhật thất bại');
     }
   };
 
@@ -113,7 +121,6 @@ export default function Profile() {
     }
 
     setLoading(true);
-    setAlert(null);
 
     const result = await changePassword({
       oldPassword: passwordData.oldPassword,
@@ -123,11 +130,11 @@ export default function Profile() {
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type: 'success', message: 'Đổi mật khẩu thành công!' });
+      showToast.success('Đổi mật khẩu thành công!');
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
       setErrors({});
     } else {
-      setAlert({ type: 'error', message: result.error || 'Đổi mật khẩu thất bại' });
+      showToast.error(result.error || 'Đổi mật khẩu thất bại');
     }
   };
 
@@ -136,12 +143,6 @@ export default function Profile() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Tài khoản của tôi</h1>
         <p className="text-gray-600 mb-8">Quản lý thông tin cá nhân và đơn hàng</p>
-
-        {alert && (
-          <div className="mb-6">
-            <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
@@ -361,25 +362,31 @@ export default function Profile() {
                             </div>
 
                             <div className="space-y-3 mb-4">
-                              {order.items?.map((item) => (
-                                <div key={item.id} className="flex gap-4">
-                                  <img
-                                    src={getImageUrl(item.product?.imageUrl)}
-                                    alt={item.product?.name}
-                                    className="w-16 h-16 object-cover rounded"
-                                    onError={(e) => {
-                                      e.target.src = 'https://via.placeholder.com/64?text=No+Image';
-                                    }}
-                                  />
-                                  <div className="flex-1">
-                                    <p className="font-medium text-gray-900">{item.product?.name}</p>
-                                    <p className="text-sm text-gray-500">x{item.quantity}</p>
-                                    <p className="text-sm font-semibold text-primary-600">
-                                      {formatCurrency(item.price)}
-                                    </p>
+                              {/* Kiểm tra cả items và orderItems */}
+                              {(order.items || order.orderItems || []).map((item, index) => {
+                                // Nếu có product nested, dùng nó. Nếu không, item chính là product data
+                                const productData = item.product || item;
+                                
+                                return (
+                                  <div key={item.id || index} className="flex gap-4">
+                                    <img
+                                      src={getImageUrl(productData.imageUrl)}
+                                      alt={productData.name || 'Sản phẩm'}
+                                      className="w-16 h-16 object-cover rounded"
+                                      onError={(e) => {
+                                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23f0f0f0" width="64" height="64"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="12" dy="4" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                      }}
+                                    />
+                                    <div className="flex-1">
+                                      <p className="font-medium text-gray-900">{productData.name || 'Sản phẩm'}</p>
+                                      <p className="text-sm text-gray-500">x{item.quantity || 1}</p>
+                                      <p className="text-sm font-semibold text-primary-600">
+                                        {formatCurrency(item.price || 0)}
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
 
                             <div className="flex items-center justify-between pt-4 border-t">

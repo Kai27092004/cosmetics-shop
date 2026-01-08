@@ -3,25 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import productService from '../../../services/productService';
 import ProductForm from './ProductForm';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 
 export default function ProductCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   const handleSubmit = async (productData) => {
     try {
       setLoading(true);
       await productService.createProduct(productData);
-      setAlert({ type: 'success', message: 'Thêm sản phẩm thành công!' });
+      showToast.success('Thêm sản phẩm thành công!');
       
       // Redirect về danh sách sau 1. 5s
       setTimeout(() => {
         navigate('/admin/products');
       }, 1500);
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Thêm sản phẩm thất bại' });
+      showToast.error(error.message || 'Thêm sản phẩm thất bại');
     } finally {
       setLoading(false);
     }
@@ -51,15 +50,6 @@ export default function ProductCreate() {
           <p className="text-gray-600 mt-1">Điền thông tin sản phẩm vào form bên dưới</p>
         </div>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Form */}
       <div className="bg-white rounded-lg shadow-lg p-6">

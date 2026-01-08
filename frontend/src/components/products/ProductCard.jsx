@@ -3,6 +3,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/helpers';
 import useCart from '../../hooks/useCart';
 import Button from '../common/Button';
+import showToast from '../../utils/toast';
 
 export default function ProductCard({ product }) {
   const { addToCart, isInCart } = useCart();
@@ -10,8 +11,10 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault(); // Prevent navigation
     const result = addToCart(product, 1);
-    if (result. success) {
-      alert(result.message);
+    if (result.success) {
+      showToast.success(result.message);
+    } else {
+      showToast.error(result.message);
     }
   };
 

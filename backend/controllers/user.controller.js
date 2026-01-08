@@ -91,7 +91,7 @@ exports.getMyOrders = async (req, res) => {
             // Lấy kèm dữ liệu từ các bảng liên quan để hiển thị chi tiết.
             include: [{
                 model: OrderItem,
-                as: 'items', // Bao gồm các sản phẩm trong đơn hàng.
+                as: 'orderItems', // ✅ SỬA: Phải khớp với alias trong model
                 include: [{
                     model: Product,
                     as: 'product', // Trong mỗi sản phẩm, lấy thông tin cơ bản.

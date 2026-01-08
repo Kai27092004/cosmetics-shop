@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ export default function Login() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,17 +55,16 @@ export default function Login() {
     if (! validateForm()) return;
 
     setLoading(true);
-    setAlert(null);
 
     const result = await login({
       email: formData.email,
-      password: formData. password,
+      password: formData.password,
     });
 
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type: 'success', message: 'Đăng nhập thành công!' });
+      showToast.success('Đăng nhập thành công!');
       
       // Lấy redirect URL từ query params
       const redirectUrl = searchParams.get('redirect') || '/';
@@ -76,7 +74,7 @@ export default function Login() {
         navigate(redirectUrl, { replace: true });
       }, 500);
     } else {
-      setAlert({ type: 'error', message: result.error || 'Đăng nhập thất bại' });
+      showToast.error(result.error || 'Đăng nhập thất bại');
     }
   };
 
@@ -100,17 +98,6 @@ export default function Login() {
             Chào mừng bạn quay trở lại! 
           </p>
         </div>
-
-        {/* Alert */}
-        {alert && (
-          <div className="mb-6">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
-          </div>
-        )}
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-lg p-8">

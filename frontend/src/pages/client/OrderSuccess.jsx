@@ -70,7 +70,7 @@ export default function OrderSuccess() {
 
           {/* Actions */}
           <div className="space-y-3">
-            <Link to="/orders">
+            <Link to="/profile" state={{ activeTab: 'orders' }}>
               <Button variant="primary" size="lg" fullWidth>
                 Xem đơn hàng của tôi
               </Button>

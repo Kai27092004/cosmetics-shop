@@ -59,7 +59,7 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                         alt={product.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/64? text=No+Image';
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23f0f0f0" width="64" height="64"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="12" dy="4" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                         }}
                       />
                     </div>

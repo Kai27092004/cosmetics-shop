@@ -3,13 +3,12 @@ import userService from '../../../services/userService';
 import UserTable from './components/UserTable';
 import UserFilters from './components/UserFilters';
 import UserStats from './components/UserStats';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 
 export default function UserList() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     role: '',
@@ -26,7 +25,7 @@ export default function UserList() {
       const data = await userService.getAllUsers(filters);
       setUsers(data);
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Không thể tải danh sách người dùng' });
+      showToast.error(error.message || 'Không thể tải danh sách người dùng');
     } finally {
       setLoading(false);
     }
@@ -44,10 +43,10 @@ export default function UserList() {
 
     try {
       await userService.updateUser(userId, { isBlocked: !isBlocked });
-      setAlert({ type: 'success', message: `Đã ${action} người dùng thành công!` });
+      showToast.success(`Đã ${action} người dùng thành công!`);
       fetchUsers();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Thao tác thất bại' });
+      showToast.error(error.message || 'Thao tác thất bại');
     }
   };
 
@@ -60,15 +59,6 @@ export default function UserList() {
           Quản lý tài khoản và quyền truy cập
         </p>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Stats */}
       <UserStats users={users} />

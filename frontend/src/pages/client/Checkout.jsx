@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // ✅ THÊM useEffect
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import useCart from '../../hooks/useCart';
@@ -6,7 +6,7 @@ import useAuth from '../../hooks/useAuth';
 import orderService from '../../services/orderService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 import Loading from '../../components/common/Loading';
 import { getImageUrl } from '../../utils/helpers';
 
@@ -28,7 +28,6 @@ export default function Checkout() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   // ✅ SỬA:  Dùng useEffect để redirect
   useEffect(() => {
@@ -71,12 +70,11 @@ export default function Checkout() {
     e.preventDefault();
 
     if (!validateForm()) {
-      setAlert({ type: 'error', message:  'Vui lòng điền đầy đủ thông tin' });
+      showToast.error('Vui lòng điền đầy đủ thông tin');
       return;
     }
 
     setLoading(true);
-    setAlert(null);
 
     try {
       // Tạo địa chỉ đầy đủ
@@ -118,23 +116,25 @@ export default function Checkout() {
 
       console.log('✅ Order created:', response);
 
+      // Hiển thị toast thành công NGAY
+      showToast.success('🎉 Đặt hàng thành công! Cảm ơn bạn đã mua sắm.');
+
       // Xóa giỏ hàng
       clearCart();
 
-      // Redirect sang trang thành công
-      navigate('/order-success', { 
-        state: { 
-          orderId: response.orderId,
-          totalAmount: response.totalAmount || totalPrice // ✅ THÊM fallback
-        } 
-      });
+      // Đợi một chút để toast hiển thị rồi mới redirect
+      setTimeout(() => {
+        navigate('/order-success', { 
+          state: { 
+            orderId: response.orderId,
+            totalAmount: response.totalAmount || totalPrice
+          } 
+        });
+      }, 1000);
 
     } catch (error) {
       console.error('❌ Order creation failed:', error);
-      setAlert({ 
-        type: 'error', 
-        message: error.message || 'Đặt hàng thất bại.  Vui lòng thử lại.' 
-      });
+      showToast.error(error.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -148,13 +148,6 @@ export default function Checkout() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Thanh toán</h1>
           <p className="text-gray-600">Vui lòng điền đầy đủ thông tin giao hàng</p>
         </div>
-
-        {/* Alert */}
-        {alert && (
-          <div className="mb-6">
-            <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
@@ -271,7 +264,7 @@ export default function Checkout() {
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/64?text=No+Image';
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23f0f0f0" width="64" height="64"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="12" dy="4" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                       }}
                     />
                     <div className="flex-1 min-w-0">

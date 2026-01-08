@@ -5,14 +5,13 @@ import ProductTable from './ProductTable';
 import ProductFilters from './ProductFilters';
 import ProductStats from './ProductStats';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 
 export default function ProductList() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     categoryId: '',
@@ -29,7 +28,7 @@ export default function ProductList() {
       const data = await productService.getAllProducts(filters);
       setProducts(data);
     } catch (error) {
-      setAlert({ type: 'error', message:  error.message || 'Không thể tải sản phẩm' });
+      showToast.error(error.message || 'Không thể tải sản phẩm');
     } finally {
       setLoading(false);
     }
@@ -40,10 +39,10 @@ export default function ProductList() {
 
     try {
       await productService.deleteProduct(productId);
-      setAlert({ type: 'success', message:  'Xóa sản phẩm thành công!' });
+      showToast.success('Xóa sản phẩm thành công!');
       fetchProducts();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Xóa thất bại' });
+      showToast.error(error.message || 'Xóa thất bại');
     }
   };
 
@@ -76,15 +75,6 @@ export default function ProductList() {
           Thêm sản phẩm
         </Button>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Stats */}
       <ProductStats products={products} />

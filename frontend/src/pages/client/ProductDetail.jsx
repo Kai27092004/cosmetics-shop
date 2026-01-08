@@ -6,7 +6,7 @@ import { formatCurrency } from '../../utils/formatters';
 import useCart from '../../hooks/useCart';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -17,7 +17,6 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -49,10 +48,9 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     const result = addToCart(product, quantity);
     if (result.success) {
-      setAlert({ type: 'success', message:  result.message });
-      setTimeout(() => setAlert(null), 3000);
+      showToast.success(result.message);
     } else {
-      setAlert({ type: 'error', message: result.message });
+      showToast.error(result.message);
     }
   };
 
@@ -61,7 +59,7 @@ export default function ProductDetail() {
     if (result.success) {
       navigate('/cart');
     } else {
-      setAlert({ type: 'error', message: result.message });
+      showToast.error(result.message);
     }
   };
 
@@ -98,17 +96,6 @@ export default function ProductDetail() {
           <span className="text-gray-900 font-medium">{product.name}</span>
         </nav>
 
-        {/* Alert */}
-        {alert && (
-          <div className="mb-6">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
-          </div>
-        )}
-
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Image */}
@@ -119,7 +106,7 @@ export default function ProductDetail() {
                   alt={product.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/600? text=No+Image';
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="600"%3E%3Crect fill="%23f0f0f0" width="600" height="600"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="24" dy="10" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }}
                 />
               </div>

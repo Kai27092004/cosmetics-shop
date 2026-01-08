@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import productService from '../../../services/productService';
 import ProductForm from './ProductForm';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 
 export default function ProductEdit() {
@@ -12,7 +12,6 @@ export default function ProductEdit() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     fetchProduct();
@@ -24,7 +23,7 @@ export default function ProductEdit() {
       const data = await productService.getProductById(id);
       setProduct(data);
     } catch (error) {
-      setAlert({ type: 'error', message: 'Không thể tải thông tin sản phẩm' });
+      showToast.error('Không thể tải thông tin sản phẩm');
     } finally {
       setLoading(false);
     }
@@ -34,13 +33,13 @@ export default function ProductEdit() {
     try {
       setSubmitting(true);
       await productService.updateProduct(id, productData);
-      setAlert({ type: 'success', message: 'Cập nhật sản phẩm thành công!' });
+      showToast.success('Cập nhật sản phẩm thành công!');
       
       setTimeout(() => {
         navigate('/admin/products');
       }, 1500);
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Cập nhật thất bại' });
+      showToast.error(error.message || 'Cập nhật thất bại');
     } finally {
       setSubmitting(false);
     }
@@ -85,15 +84,6 @@ export default function ProductEdit() {
           <p className="text-gray-600 mt-1">#{product.id} - {product.name}</p>
         </div>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Form */}
       <div className="bg-white rounded-lg shadow-lg p-6">

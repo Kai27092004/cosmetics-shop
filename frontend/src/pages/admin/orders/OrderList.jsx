@@ -5,7 +5,7 @@ import useSocket from '../../../hooks/useSocket';
 import OrderTable from './components/OrderTable';
 import OrderFilters from './components/OrderFilters';
 import OrderStats from './components/OrderStats';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 
 export default function OrderList() {
@@ -13,7 +13,6 @@ export default function OrderList() {
   const { on } = useSocket();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -28,10 +27,7 @@ export default function OrderList() {
   useEffect(() => {
     const unsubscribe = on('order:new', (data) => {
       console.log('🔔 [OrderList] New order received:', data);
-      setAlert({ 
-        type: 'success', 
-        message: `Đơn hàng mới #${data.orderId} từ ${data.customerName}!` 
-      });
+      showToast.success(`Đơn hàng mới #${data.orderId} từ ${data.customerName}!`);
       fetchOrders(); // Refresh danh sách
     });
 
@@ -54,7 +50,7 @@ export default function OrderList() {
       const data = await orderService.getAllOrders(filters);
       setOrders(data);
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Không thể tải đơn hàng' });
+      showToast.error(error.message || 'Không thể tải đơn hàng');
     } finally {
       setLoading(false);
     }
@@ -67,10 +63,10 @@ export default function OrderList() {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
-      setAlert({ type: 'success', message: 'Cập nhật trạng thái thành công!' });
+      showToast.success('Cập nhật trạng thái thành công!');
       fetchOrders();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Cập nhật thất bại' });
+      showToast.error(error.message || 'Cập nhật thất bại');
     }
   };
 
@@ -87,15 +83,6 @@ export default function OrderList() {
           Theo dõi và xử lý đơn hàng realtime
         </p>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Stats */}
       <OrderStats orders={orders} />

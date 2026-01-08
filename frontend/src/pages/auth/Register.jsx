@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ export default function Register() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,10 +65,9 @@ export default function Register() {
     if (!validateForm()) return;
 
     setLoading(true);
-    setAlert(null);
 
     const result = await register({
-      fullName: formData. fullName,
+      fullName: formData.fullName,
       email: formData.email,
       password: formData.password,
     });
@@ -77,12 +75,12 @@ export default function Register() {
     setLoading(false);
 
     if (result.success) {
-      setAlert({ type:  'success', message: 'Đăng ký thành công!  Đang chuyển đến trang đăng nhập.. .' });
+      showToast.success('Đăng ký thành công! Đang chuyển đến trang đăng nhập...');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } else {
-      setAlert({ type: 'error', message: result.error || 'Đăng ký thất bại' });
+      showToast.error(result.error || 'Đăng ký thất bại');
     }
   };
 
@@ -106,17 +104,6 @@ export default function Register() {
             Tạo tài khoản để bắt đầu mua sắm
           </p>
         </div>
-
-        {/* Alert */}
-        {alert && (
-          <div className="mb-6">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert(null)}
-            />
-          </div>
-        )}
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-lg p-8">

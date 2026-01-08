@@ -3,14 +3,13 @@ import categoryService from '../../../services/categoryService';
 import CategoryTable from './components/CategoryTable';
 import CategoryForm from './components/CategoryForm';
 import Button from '../../../components/common/Button';
-import Alert from '../../../components/common/Alert';
+import showToast from '../../../utils/toast';
 import Loading from '../../../components/common/Loading';
 import Modal from '../../../components/common/Modal';
 
 export default function CategoryList() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -27,7 +26,7 @@ export default function CategoryList() {
       const data = await categoryService.getAllCategories();
       setCategories(data);
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Không thể tải danh mục' });
+      showToast.error(error.message || 'Không thể tải danh mục');
     } finally {
       setLoading(false);
     }
@@ -48,15 +47,15 @@ export default function CategoryList() {
     try {
       if (modalMode === 'create') {
         await categoryService.createCategory(categoryData);
-        setAlert({ type: 'success', message: 'Thêm danh mục thành công!' });
+        showToast.success('Thêm danh mục thành công!');
       } else {
         await categoryService.updateCategory(currentCategory.id, categoryData);
-        setAlert({ type: 'success', message: 'Cập nhật danh mục thành công!' });
+        showToast.success('Cập nhật danh mục thành công!');
       }
       handleCloseModal();
       fetchCategories();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Thao tác thất bại' });
+      showToast.error(error.message || 'Thao tác thất bại');
     }
   };
 
@@ -67,10 +66,10 @@ export default function CategoryList() {
 
     try {
       await categoryService.deleteCategory(categoryId);
-      setAlert({ type: 'success', message: 'Xóa danh mục thành công!' });
+      showToast.success('Xóa danh mục thành công!');
       fetchCategories();
     } catch (error) {
-      setAlert({ type: 'error', message: error.message || 'Xóa thất bại' });
+      showToast.error(error.message || 'Xóa thất bại');
     }
   };
 
@@ -95,15 +94,6 @@ export default function CategoryList() {
           Thêm danh mục
         </Button>
       </div>
-
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       {/* Table */}
       {loading ? (

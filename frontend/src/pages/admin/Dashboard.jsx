@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import dashboardService from '../../services/dashboardService';
 import { formatCurrency } from '../../utils/formatters';
 import Loading from '../../components/common/Loading';
-import Alert from '../../components/common/Alert';
+import showToast from '../../utils/toast';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -39,6 +39,7 @@ export default function Dashboard() {
       setOrderChartData(orderData);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
+      showToast.error(err.message || 'Không thể tải dữ liệu dashboard');
       setError(err.message || 'Không thể tải dữ liệu dashboard');
     } finally {
       setLoading(false);
@@ -98,18 +99,15 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="p-6">
-        <Alert
-          type="error"
-          title="Lỗi"
-          message={error}
-          onClose={() => setError(null)}
-        />
-        <button
-          onClick={fetchDashboardData}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-        >
-          Thử lại
-        </button>
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchDashboardData}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Thử lại
+          </button>
+        </div>
       </div>
     );
   }
