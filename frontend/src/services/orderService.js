@@ -17,6 +17,9 @@ export const orderService = {
         cartItems: orderData. cartItems,
         shippingAddress: orderData.shippingAddress,
         customerNotes:  orderData.customerNotes || '',
+        paymentMethod: orderData.paymentMethod || 'COD',
+        phone: orderData.phone,
+        fullName: orderData.fullName,
       });
 
       console.log('✅ [Order Service] Order created successfully:', data.orderId);

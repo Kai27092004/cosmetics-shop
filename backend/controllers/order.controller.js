@@ -1,36 +1,67 @@
 const db = require('../models');
-const { getIO } = require('../socket'); // ✅ THÊM MỚI: Import Socket.IO
+const { getIO } = require('../socket');
 
-// --- HÀM 1: TẠO ĐƠN HÀNG MỚI ---
+// =====================================================================
+// HÀM 1: TẠO ĐƠN HÀNG MỚI
+// ✅ CẬP NHẬT:  Thêm paymentMethod, phone, fullName
+// =====================================================================
 exports.createOrder = async (req, res) => {
     const userId = req.userId;
-    const { cartItems, shippingAddress, customerNotes } = req.body;
+    
+    // ✅ THÊM MỚI: Nhận paymentMethod, phone, fullName từ frontend
+    const { 
+        cartItems, 
+        shippingAddress, 
+        customerNotes,
+        paymentMethod = 'COD',  // ✅ MỚI: Mặc định COD
+        phone,                   // ✅ MỚI
+        fullName                 // ✅ MỚI
+    } = req. body;
 
-    const t = await db.sequelize. transaction();
+    const t = await db.sequelize.transaction();
 
     try {
+        // ✅ THÊM MỚI: Validate paymentMethod
+        if (!['COD', 'QRCODE']. includes(paymentMethod)) {
+            return res.status(400).send({ 
+                message: 'Phương thức thanh toán không hợp lệ. Chỉ chấp nhận COD hoặc QRCODE.' 
+            });
+        }
+
+        // ✅ THÊM MỚI: Validate phone và fullName
+        if (!phone || !fullName) {
+            return res.status(400).send({ 
+                message: 'Vui lòng cung cấp số điện thoại và họ tên.' 
+            });
+        }
+
         // BƯỚC 1: TÍNH TỔNG TIỀN Ở SERVER
         let totalAmount = 0;
         const productIds = cartItems.map(item => item.productId);
         const products = await db.Product.findAll({ where: { id: productIds } });
         
         for (const cartItem of cartItems) {
-            const product = products.find(p => p.id === cartItem.productId);
+            const product = products.find(p => p.id === cartItem. productId);
             if (!product) {
-                throw new Error(`Sản phẩm với ID ${cartItem.productId} không tồn tại.`);
+                throw new Error(`Sản phẩm với ID ${cartItem.productId} không tồn tại. `);
             }
-            if (product.stockQuantity < cartItem.quantity) {
-                throw new Error(`Không đủ số lượng cho sản phẩm: ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
+            if (product.stockQuantity < cartItem. quantity) {
+                throw new Error(`Không đủ số lượng cho sản phẩm:  ${product.name}. Chỉ còn ${product.stockQuantity} sản phẩm.`);
             }
-            totalAmount += product.price * cartItem.quantity;
+            totalAmount += product.price * cartItem. quantity;
         }
 
         // BƯỚC 2: TẠO ĐƠN HÀNG
+        // ✅ CẬP NHẬT:  Thêm paymentMethod, paymentStatus, phone, fullName
         const order = await db.Order.create({
             userId,
             totalAmount,
             shippingAddress,
-            customerNotes
+            customerNotes,
+            paymentMethod,                                    // ✅ MỚI
+            paymentStatus: 'unpaid',                         // ✅ MỚI:  Mặc định chưa thanh toán
+            phone,                                            // ✅ MỚI
+            fullName                                          // ✅ MỚI
         }, { transaction: t });
 
         // BƯỚC 3: TẠO CHI TIẾT ĐƠN HÀNG VÀ CẬP NHẬT KHO
@@ -44,51 +75,55 @@ exports.createOrder = async (req, res) => {
                 price: product.price
             }, { transaction: t });
 
-            product.stockQuantity -= cartItem.quantity;
+            product.stockQuantity -= cartItem. quantity;
             await product.save({ transaction: t });
         }
 
         await t.commit();
 
-        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
+        // ✅ GỬI REALTIME NOTIFICATION
         try {
             const io = getIO();
-            
-            // Lấy thông tin user để gửi notification
             const user = await db.User.findByPk(userId, {
                 attributes: ['id', 'fullName', 'email']
             });
 
             // Gửi cho tất cả admin
             io.to('role:admin').emit('order:new', {
-                orderId: order. id,
+                orderId: order.id,
                 userId,
                 userName: user.fullName,
-                userEmail: user.email,
+                userEmail: user. email,
                 totalAmount:  order.totalAmount,
+                paymentMethod:  order.paymentMethod,  // ✅ MỚI
+                paymentStatus: order.paymentStatus,  // ✅ MỚI
                 itemCount: cartItems.length,
                 timestamp: new Date(),
-                message: `🛒 Đơn hàng mới #${order.id} từ ${user.fullName}`
+                message: `🛒 Đơn hàng mới #${order.id} từ ${user.fullName} (${paymentMethod})`
             });
 
             // Gửi cho user vừa đặt hàng
-            io. to(`user:${userId}`).emit('order:created', {
+            io.to(`user:${userId}`).emit('order:created', {
                 orderId: order.id,
                 status: 'pending',
-                totalAmount: order.totalAmount,
-                message: `✅ Đơn hàng #${order.id} của bạn đã được tạo thành công!`
+                paymentMethod: order.paymentMethod,  // ✅ MỚI
+                paymentStatus: order.paymentStatus,  // ✅ MỚI
+                totalAmount: order. totalAmount,
+                message: `✅ Đơn hàng #${order. id} của bạn đã được tạo thành công! `
             });
 
-            console.log(`📡 Realtime notification sent for order #${order.id}`);
+            console.log(`📡 Realtime notification sent for order #${order. id}`);
         } catch (socketError) {
-            console.error('❌ Socket. IO error:', socketError. message);
-            // Không throw error để không ảnh hưởng đến việc tạo đơn hàng
+            console. error('❌ Socket.IO error:', socketError.message);
         }
         
+        // ✅ CẬP NHẬT RESPONSE:  Thêm paymentMethod và paymentStatus
         res.status(201).send({ 
             message: "Đặt hàng thành công!", 
-            orderId: order. id,
-            totalAmount: order.totalAmount
+            orderId: order.id,
+            totalAmount: order.totalAmount,
+            paymentMethod:  order.paymentMethod,  // ✅ MỚI
+            paymentStatus: order. paymentStatus   // ✅ MỚI
         });
 
     } catch (error) {
@@ -97,9 +132,12 @@ exports.createOrder = async (req, res) => {
     }
 };
 
-// --- HÀM 2: HỦY ĐƠN HÀNG (USER TỰ HỦY) ---
+// =====================================================================
+// HÀM 2: HỦY ĐƠN HÀNG (USER TỰ HỦY)
+// ⚠️ KHÔNG CẦN SỬA (giữ nguyên)
+// =====================================================================
 exports.cancelOrder = async (req, res) => {
-    const userId = req. userId; 
+    const userId = req.userId; 
     const { orderId } = req.params;
     const t = await db.sequelize.transaction();
 
@@ -110,13 +148,13 @@ exports.cancelOrder = async (req, res) => {
                 userId: userId,
                 status: 'pending'
             },
-            include: [{ model: db.OrderItem, as: 'orderItems' }],
-            transaction: t
+            include: [{ model: db. OrderItem, as: 'orderItems' }],
+            transaction:  t
         });
 
         if (!order) {
-            await t.rollback();
-            return res.status(404).send({ message: "Không tìm thấy đơn hàng hoặc đơn hàng không thể hủy." });
+            await t. rollback();
+            return res. status(404).send({ message: "Không tìm thấy đơn hàng hoặc đơn hàng không thể hủy." });
         }
 
         order.status = 'cancelled';
@@ -130,28 +168,25 @@ exports.cancelOrder = async (req, res) => {
             });
         }
 
-        await t. commit();
+        await t.commit();
 
-        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
         try {
             const io = getIO();
             
-            // Gửi cho admin
             io.to('role:admin').emit('order:cancelled', {
                 orderId: order.id,
                 userId,
                 timestamp: new Date(),
-                message:  `❌ Đơn hàng #${order.id} đã bị hủy bởi khách hàng`
+                message: `❌ Đơn hàng #${order.id} đã bị hủy bởi khách hàng`
             });
 
-            // Gửi cho user
-            io. to(`user:${userId}`).emit('order:statusChanged', {
-                orderId: order.id,
+            io.to(`user:${userId}`).emit('order:statusChanged', {
+                orderId:  order.id,
                 status: 'cancelled',
                 message: `Đơn hàng #${order.id} đã được hủy thành công`
             });
         } catch (socketError) {
-            console.error('❌ Socket.IO error:', socketError. message);
+            console.error('❌ Socket.IO error:', socketError.message);
         }
 
         res.status(200).send({ message: "Hủy đơn hàng thành công." });
@@ -162,11 +197,14 @@ exports.cancelOrder = async (req, res) => {
     }
 };
 
-// --- HÀM 3: CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (USER) ---
+// =====================================================================
+// HÀM 3: CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG (USER)
+// ⚠️ KHÔNG CẦN SỬA (giữ nguyên)
+// =====================================================================
 exports.updateOrderStatus = async (req, res) => {
     const userId = req.userId;
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status } = req. body;
 
     const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
@@ -195,11 +233,16 @@ exports.updateOrderStatus = async (req, res) => {
     }
 };
 
-// --- HÀM 4: [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG ---
+// =====================================================================
+// HÀM 4: [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG
+// ✅ CẬP NHẬT: Include paymentMethod và paymentStatus
+// =====================================================================
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await db.Order.findAll({
             order: [['createdAt', 'DESC']],
+            // ✅ CẬP NHẬT: paymentMethod và paymentStatus sẽ tự động được trả về
+            // vì chúng là column của bảng Orders
             include: [
                 { 
                     model: db.User, 
@@ -223,7 +266,10 @@ exports.getAllOrders = async (req, res) => {
     }
 };
 
-// --- HÀM 5: [ADMIN] CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ---
+// =====================================================================
+// HÀM 5: [ADMIN] CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+// ⚠️ KHÔNG CẦN SỬA (giữ nguyên)
+// =====================================================================
 exports.adminUpdateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -233,11 +279,11 @@ exports.adminUpdateOrderStatus = async (req, res) => {
         return res. status(400).send({ message: "Trạng thái không hợp lệ." });
     }
 
-    const t = await db.sequelize. transaction();
+    const t = await db.sequelize.transaction();
 
     try {
-        const order = await db.Order. findByPk(orderId, {
-            include: [{ model: db.OrderItem, as: 'orderItems' }],
+        const order = await db.Order.findByPk(orderId, {
+            include: [{ model:  db.OrderItem, as: 'orderItems' }],
             transaction: t
         });
 
@@ -268,7 +314,6 @@ exports.adminUpdateOrderStatus = async (req, res) => {
             include: [{ model: db.User, as: 'user', attributes: ['id', 'fullName', 'email'] }]
         });
 
-        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
         try {
             const io = getIO();
 
@@ -280,7 +325,6 @@ exports.adminUpdateOrderStatus = async (req, res) => {
                 cancelled: 'Đã hủy'
             };
 
-            // Gửi cho user sở hữu đơn hàng
             io.to(`user:${order.userId}`).emit('order:statusChanged', {
                 orderId: order.id,
                 oldStatus,
@@ -290,7 +334,6 @@ exports.adminUpdateOrderStatus = async (req, res) => {
                 message: `📦 Đơn hàng #${order.id} đã chuyển sang trạng thái:  ${statusMessages[status]}`
             });
 
-            // Gửi cho tất cả admin (để đồng bộ UI)
             io.to('role:admin').emit('order:updated', {
                 orderId: order.id,
                 status,
@@ -298,8 +341,7 @@ exports.adminUpdateOrderStatus = async (req, res) => {
                 timestamp: new Date()
             });
 
-            // Gửi cho room tracking đơn hàng cụ thể
-            io. to(`order:${orderId}`).emit('order:update', {
+            io.to(`order:${orderId}`).emit('order:update', {
                 orderId: order.id,
                 status,
                 statusText: statusMessages[status],
@@ -319,12 +361,16 @@ exports.adminUpdateOrderStatus = async (req, res) => {
     }
 };
 
-// --- HÀM 6: [ADMIN] LẤY CHI TIẾT MỘT ĐƠN HÀNG ---
+// =====================================================================
+// HÀM 6: [ADMIN] LẤY CHI TIẾT MỘT ĐƠN HÀNG
+// ✅ CẬP NHẬT: paymentMethod và paymentStatus tự động được trả về
+// =====================================================================
 exports.getAdminOrderDetails = async (req, res) => {
     try {
         const { orderId } = req.params;
 
         const order = await db.Order.findByPk(orderId, {
+            // ✅ paymentMethod và paymentStatus sẽ tự động có trong response
             include: [
                 {
                     model: db.User,
@@ -353,13 +399,16 @@ exports.getAdminOrderDetails = async (req, res) => {
     }
 };
 
-// --- HÀM 7: [ADMIN] XÓA ĐƠN HÀNG ---
+// =====================================================================
+// HÀM 7: [ADMIN] XÓA ĐƠN HÀNG
+// ⚠️ KHÔNG CẦN SỬA (giữ nguyên)
+// =====================================================================
 exports.adminDeleteOrder = async (req, res) => {
     const { orderId } = req.params;
     const t = await db.sequelize.transaction();
 
     try {
-        const order = await db.Order.findByPk(orderId, {
+        const order = await db. Order.findByPk(orderId, {
             include: [{ model: db.OrderItem, as: 'orderItems' }],
             transaction: t
         });
@@ -373,9 +422,9 @@ exports.adminDeleteOrder = async (req, res) => {
 
         if (order.status !== 'cancelled') {
             for (const item of order.orderItems) {
-                if (item.productId) {
+                if (item. productId) {
                     await db.Product.increment('stockQuantity', {
-                        by: item.quantity,
+                        by:  item.quantity,
                         where: { id: item.productId },
                         transaction: t
                     });
@@ -389,13 +438,11 @@ exports.adminDeleteOrder = async (req, res) => {
         await order.destroy({ transaction: t });
         await t.commit();
 
-        // ✅ THÊM MỚI: GỬI REALTIME NOTIFICATION
         try {
             const io = getIO();
             
-            // Gửi cho admin
             io.to('role:admin').emit('order:deleted', {
-                orderId:  order.id,
+                orderId: order.id,
                 timestamp: new Date(),
                 message: `🗑️ Đơn hàng #${order.id} đã bị xóa`
             });
@@ -413,7 +460,10 @@ exports.adminDeleteOrder = async (req, res) => {
     }
 };
 
-// --- HÀM 8: LẤY TRẠNG THÁI ĐƠN HÀNG (PUBLIC) ---
+// =====================================================================
+// HÀM 8: LẤY TRẠNG THÁI ĐƠN HÀNG (PUBLIC)
+// ✅ CẬP NHẬT:  Thêm paymentMethod và paymentStatus vào response
+// =====================================================================
 exports.getOrderStatus = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -424,7 +474,15 @@ exports.getOrderStatus = async (req, res) => {
                 id: orderId,
                 userId: userId
             },
-            attributes: ['id', 'status', 'totalAmount', 'updatedAt']
+            // ✅ CẬP NHẬT:  Thêm paymentMethod và paymentStatus
+            attributes: [
+                'id', 
+                'status', 
+                'totalAmount', 
+                'paymentMethod',    // ✅ MỚI
+                'paymentStatus',    // ✅ MỚI
+                'updatedAt'
+            ]
         });
 
         if (!order) {

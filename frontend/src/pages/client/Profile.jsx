@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import orderService from '../../services/orderService';
 import { formatCurrency } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/helpers';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 import showToast from '../../utils/toast';
 import Loading from '../../components/common/Loading';
 
 export default function Profile() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, updateProfile, changePassword, logout } = useAuth();
 
   // Nếu có state từ navigation, dùng nó. Nếu không, mặc định là 'profile'
@@ -33,6 +35,8 @@ export default function Profile() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   // Đọc state từ navigation để mở tab tương ứng
   useEffect(() => {
@@ -60,13 +64,60 @@ export default function Profile() {
     }
   };
 
+  const handlePayment = (order) => {
+    // Navigate to payment page with order info
+    navigate(`/payment/${order.id}`, {
+      state: {
+        orderId: order.id,
+        totalAmount: order.totalAmount,
+      },
+    });
+  };
+
+  const handleCancelOrder = (orderId) => {
+    setSelectedOrderId(orderId);
+    setCancelModalOpen(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!selectedOrderId) return;
+
+    try {
+      setLoading(true);
+      await orderService.cancelOrder(selectedOrderId);
+      
+      // Update orders list
+      setOrders(orders.map(order => 
+        order.id === selectedOrderId 
+          ? { ...order, status: 'cancelled' }
+          : order
+      ));
+      
+      showToast.success('Đã hủy đơn hàng thành công!');
+      setCancelModalOpen(false);
+      setSelectedOrderId(null);
+    } catch (error) {
+      showToast.error(error.message || 'Hủy đơn hàng thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getOrderStatusText = (status) => {
     const statusMap = {
       pending: { text: 'Chờ xác nhận', color: 'text-yellow-600 bg-yellow-100' },
-      confirmed: { text: 'Đã xác nhận', color: 'text-blue-600 bg-blue-100' },
-      shipping: { text: 'Đang giao', color: 'text-purple-600 bg-purple-100' },
+      processing: { text: 'Đang xử lý', color: 'text-blue-600 bg-blue-100' },
+      shipped: { text: 'Đang giao', color: 'text-purple-600 bg-purple-100' },
       delivered: { text: 'Đã giao', color: 'text-green-600 bg-green-100' },
       cancelled: { text: 'Đã hủy', color: 'text-red-600 bg-red-100' },
+    };
+    return statusMap[status] || { text: status, color: 'text-gray-600 bg-gray-100' };
+  };
+
+  const getPaymentStatusText = (status) => {
+    const statusMap = {
+      unpaid: { text: 'Chưa thanh toán', color: 'text-orange-600 bg-orange-100' },
+      paid: { text: 'Đã thanh toán', color: 'text-green-600 bg-green-100' },
     };
     return statusMap[status] || { text: status, color: 'text-gray-600 bg-gray-100' };
   };
@@ -347,17 +398,33 @@ export default function Profile() {
                     <div className="space-y-4">
                       {orders.map((order) => {
                         const statusInfo = getOrderStatusText(order.status);
+                        const paymentStatusInfo = getPaymentStatusText(order.paymentStatus);
+                        const canCancel = order.status === 'pending' && order.paymentStatus === 'unpaid';
+                        const needPayment = order.paymentMethod === 'QRCODE' && order.paymentStatus === 'unpaid' && order.status !== 'cancelled';
+                        
                         return (
                           <div key={order.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between mb-4 pb-4 border-b">
                               <div>
                                 <p className="text-sm text-gray-500">Mã đơn hàng</p>
                                 <p className="font-bold text-gray-900">#{order.id}</p>
+                                {order.paymentMethod && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {order.paymentMethod === 'QRCODE' ? '💳 QR Code' : '💵 COD'}
+                                  </p>
+                                )}
                               </div>
-                              <div className="text-right">
+                              <div className="text-right space-y-2">
                                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusInfo.color}`}>
                                   {statusInfo.text}
                                 </span>
+                                {order.paymentStatus && (
+                                  <div>
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${paymentStatusInfo.color}`}>
+                                      {paymentStatusInfo.text}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -400,6 +467,36 @@ export default function Profile() {
                                 </p>
                               </div>
                             </div>
+
+                            {/* Action Buttons */}
+                            {(needPayment || canCancel) && (
+                              <div className="flex gap-3 mt-4 pt-4 border-t">
+                                {needPayment && (
+                                  <Button
+                                    variant="primary"
+                                    onClick={() => handlePayment(order)}
+                                    className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
+                                  >
+                                    <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Thanh toán ngay
+                                  </Button>
+                                )}
+                                {canCancel && (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleCancelOrder(order.id)}
+                                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                                  >
+                                    <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Hủy đơn
+                                  </Button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -411,6 +508,39 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      <Modal
+        isOpen={cancelModalOpen}
+        onClose={() => setCancelModalOpen(false)}
+        title="Xác nhận hủy đơn hàng"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Bạn có chắc chắn muốn hủy đơn hàng #{selectedOrderId}?
+          </p>
+          <p className="text-sm text-red-600">
+            ⚠️ Lưu ý: Hành động này không thể hoàn tác!
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setCancelModalOpen(false)}
+              disabled={loading}
+            >
+              Đóng
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmCancelOrder}
+              loading={loading}
+              disabled={loading}
+            >
+              Xác nhận hủy
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

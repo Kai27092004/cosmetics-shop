@@ -43,17 +43,17 @@ CREATE TABLE Products (
     description TEXT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     stockQuantity INT NOT NULL DEFAULT 0,
-    imageUrl VARCHAR(255) NOT NULL, -- Ảnh chính (Thumbnail)
+    imageUrl VARCHAR(255) NOT NULL,
     sku VARCHAR(100) UNIQUE NULL, 
-    dimensions VARCHAR(255) NULL, -- Dùng lưu dung tích (ml/g)
-    material VARCHAR(255) NULL,   -- Dùng lưu thành phần chính
+    dimensions VARCHAR(255) NULL,
+    material VARCHAR(255) NULL,
     categoryId INT NULL,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (categoryId) REFERENCES Categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 4. Bảng ProductImages (MỚI: Lưu ảnh phụ)
+-- 4. Bảng ProductImages
 CREATE TABLE ProductImages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     productId INT NOT NULL,
@@ -64,13 +64,26 @@ CREATE TABLE ProductImages (
 ) ENGINE=InnoDB;
 
 -- 5. Bảng Orders
+-- ✅ THÊM MỚI:  paymentMethod và paymentStatus
 CREATE TABLE Orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId INT NOT NULL,
     totalAmount DECIMAL(10, 2) NOT NULL,
     status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
+    
+    -- ✅ THÊM:  Phương thức thanh toán
+    paymentMethod ENUM('COD', 'QRCODE') NOT NULL DEFAULT 'COD',
+    
+    -- ✅ THÊM: Trạng thái thanh toán
+    paymentStatus ENUM('unpaid', 'paid') NOT NULL DEFAULT 'unpaid',
+    
     shippingAddress TEXT NOT NULL,
-    customerNotes TEXT NULL, 
+    customerNotes TEXT NULL,
+    
+    -- ✅ THÊM: Thông tin giao hàng chi tiết
+    phone VARCHAR(20) NOT NULL,
+    fullName VARCHAR(255) NOT NULL,
+    
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
@@ -114,10 +127,16 @@ CREATE TABLE IF NOT EXISTS EmailLogs (
     FOREIGN KEY (sentBy) REFERENCES Users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Tạo Indexes
+-- ✅ THÊM:  Indexes cho tối ưu query
 CREATE INDEX idx_email_logs_user ON EmailLogs(userId);
 CREATE INDEX idx_email_logs_status ON EmailLogs(status);
 CREATE INDEX idx_email_logs_sent_at ON EmailLogs(sentAt);
+
+-- ✅ THÊM: Indexes cho Orders (để query nhanh hơn)
+CREATE INDEX idx_orders_payment_status ON Orders(paymentStatus);
+CREATE INDEX idx_orders_payment_method ON Orders(paymentMethod);
+CREATE INDEX idx_orders_user ON Orders(userId);
+CREATE INDEX idx_orders_status ON Orders(status);
 
 -- =====================================================================
 -- BƯỚC 2: THÊM DỮ LIỆU MẪU (SEED DATA)
@@ -126,10 +145,10 @@ CREATE INDEX idx_email_logs_sent_at ON EmailLogs(sentAt);
 -- 1. Users
 INSERT INTO `users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
 ('Quản Trị Viên', 'admin@email.com', '$2a$12$78cga50NK6qxk35cpjwlKetU9VJvTUpI0UhfinwAQdSUH/QyO3itO', '0987654321', '123 Đường Admin, Quận 1, TP.HCM', 'admin'),
-('Nguyễn Văn An', 'nguyen.an@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0912345678', '111 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội', 'customer'),
+('Nguyễn Văn An', 'nguyen. an@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB. qJAM/SnC1iUhNb5WU. 1tyX2Aq', '0912345678', '111 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội', 'customer'),
 ('Trần Thị Bích', 'tran.bich@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0923456789', '222 Lê Lợi, Quận Hải Châu, Đà Nẵng', 'customer'),
 ('Lê Minh Cường', 'le.cuong@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0934567890', '333 Trần Hưng Đạo, Quận 5, TP.HCM', 'customer'),
-('Phạm Thị Dung', 'pham.dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer'),
+('Phạm Thị Dung', 'pham. dung@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0945678901', '444 Võ Văn Tần, Quận 3, TP.HCM', 'customer'),
 ('Hoàng Văn Em', 'hoang.em@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0956789012', '555 Cầu Giấy, Quận Cầu Giấy, Hà Nội', 'customer'),
 ('Võ Thị Giang', 'vo.giang@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0967890123', '666 Nguyễn Thị Minh Khai, Quận 1, TP.HCM', 'customer'),
 ('Đỗ Minh Hải', 'do.hai@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0978901234', '777 Lý Thường Kiệt, Quận Tân Bình, TP.HCM', 'customer'),
@@ -138,25 +157,25 @@ INSERT INTO `users` (`fullName`, `email`, `password`, `phone`, `address`, `role`
 
 -- 2. Categories
 INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
-(1, 'Kem dưỡng da', 'Kem dưỡng da mang lại làn da mềm mịn, cấp ẩm sâu và giúp nuôi dưỡng vẻ rạng ngời từ sâu bên trong.'),
+(1, 'Kem dưỡng da', 'Kem dưỡng da mang lại làn da mềm mịn, cấp ẩm sâu và giúp nuôi dưỡng vẻ rạng ngời từ sâu bên trong. '),
 (2, 'Sữa rửa mặt', 'Làm sạch sâu bụi bẩn và bã nhờn nhẹ nhàng, giúp lỗ chân lông thông thoáng mà vẫn giữ độ ẩm tự nhiên cho da.'),
 (3, 'Dầu gội', 'Chăm sóc mái tóc chắc khỏe từ gốc đến ngọn, phục hồi hư tổn và lưu lại hương thơm quyến rũ suốt ngày dài.'),
-(4, 'Sữa tắm', 'Nuôi dưỡng làn da cơ thể mịn màng, trắng sáng với chiết xuất thiên nhiên, mang lại cảm giác thư giãn sảng khoái.');
+(4, 'Sữa tắm', 'Nuôi dưỡng làn da cơ thể m��n màng, trắng sáng với chiết xuất thiên nhiên, mang lại cảm giác thư giãn sảng khoái.');
 
 -- 3. Products (16 sản phẩm)
 INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
-(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường.', 150000.00, 50, '/upload/son-duong-am-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
+(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường. ', 150000.00, 50, '/upload/son-duong-am-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
 (2, 'Kem Dưỡng Trắng Ngọc Trai', 'Chiết xuất ngọc trai tự nhiên giúp làm sáng da, mờ thâm nám và đều màu da hiệu quả.', 320000.00, 30, '/upload/kem-ngoc-trai.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
 (3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-collagen.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
-(4, 'Gel Dưỡng Da Lô Hội', 'Dạng gel thẩm thấu nhanh, không gây bết dính, làm dịu da cháy nắng và cấp nước tức thì cho làn da.', 120000.00, 100, '/upload/gel-lo-hoi.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
+(4, 'Gel Dưỡng Da Lô Hội', 'Dạng gel thẩm thấu nhanh, không gây bết dính, làm dịu da cháy nắng và cấp nước tức thì cho làn da. ', 120000.00, 100, '/upload/gel-lo-hoi.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
 (5, 'Sữa Rửa Mặt Trà Xanh', 'Làm sạch sâu lỗ chân lông, kiểm soát bã nhờn và ngăn ngừa mụn với tinh chất trà xanh kháng khuẩn.', 95000.00, 80, '/upload/srm-tra-xanh.jpg', 'SRM-001', '100ml', 'Trà xanh Nhật Bản', 2),
-(6, 'Sữa Rửa Mặt Dịu Nhẹ pH 5.5', 'Công thức cân bằng độ pH lý tưởng, phù hợp cho da nhạy cảm, làm sạch mà không gây khô căng.', 180000.00, 60, '/upload/srm-diu-nhe.jpg', 'SRM-002', '150ml', 'Ceramide, Glycerin', 2),
+(6, 'Sữa Rửa Mặt Dịu Nhẹ pH 5.5', 'Công thức cân bằng độ pH lý tưởng, phù hợp cho da nhạy cảm, làm sạch mà không gây khô căng. ', 180000.00, 60, '/upload/srm-diu-nhe.jpg', 'SRM-002', '150ml', 'Ceramide, Glycerin', 2),
 (7, 'Sữa Rửa Mặt Than Tre', 'Hút sạch độc tố, bụi bẩn và dầu thừa, giúp da sáng khỏe và lỗ chân lông thông thoáng.', 110000.00, 45, '/upload/srm-than-tre.jpg', 'SRM-003', '100g', 'Than tre hoạt tính', 2),
-(8, 'Gel Rửa Mặt Tẩy Tế Bào Chết', 'Chứa các hạt massage nhỏ giúp loại bỏ tế bào chết nhẹ nhàng trong quá trình rửa mặt hàng ngày.', 135000.00, 50, '/upload/srm-tay-te-bao.jpg', 'SRM-004', '120ml', 'Hạt Jojoba', 2),
+(8, 'Gel Rửa Mặt Tẩy Tế Bào Chết', 'Chứa các hạt massage nhỏ giúp loại bỏ tế bào chết nhẹ nhàng trong quá trình rửa mặt hàng ngày.', 135000.00, 50, '/upload/srm-tay-te-bao. jpg', 'SRM-004', '120ml', 'Hạt Jojoba', 2),
 (9, 'Dầu Gội Bưởi Kích Thích Mọc Tóc', 'Tinh dầu vỏ bưởi đậm đặc giúp ngăn rụng tóc, nuôi dưỡng nang tóc và kích thích mọc tóc con.', 250000.00, 40, '/upload/dau-goi-buoi.jpg', 'DAU-GOI-001', '300ml', 'Tinh dầu bưởi', 3),
 (10, 'Dầu Gội Thảo Dược Bồ Kết', 'Nấu từ bồ kết truyền thống kết hợp hương nhu, giúp tóc đen mượt, sạch gàu và giảm ngứa da đầu.', 180000.00, 55, '/upload/dau-goi-bo-ket.jpg', 'DAU-GOI-002', '500ml', 'Bồ kết, Hương nhu', 3),
-(11, 'Dầu Gội Phục Hồi Keratin', 'Bổ sung Keratin giúp tái tạo cấu trúc tóc, phục hồi mái tóc hư tổn do uốn, duỗi, nhuộm.', 350000.00, 30, '/upload/dau-goi-keratin.jpg', 'DAU-GOI-003', '450ml', 'Keratin, Dầu Argan', 3),
-(12, 'Dầu Gội Bạc Hà Mát Lạnh', 'Mang lại cảm giác mát lạnh sảng khoái, đánh bay gàu và bụi bẩn, giúp da đầu thư giãn.', 120000.00, 70, '/upload/dau-goi-bac-ha.jpg', 'DAU-GOI-004', '650ml', 'Tinh chất bạc hà', 3),
+(11, 'Dầu Gội Phục Hồi Keratin', 'Bổ sung Keratin giúp tái tạo cấu trúc tóc, phục hồi mái tóc hư tổn do uốn, duỗi, nhuộm. ', 350000.00, 30, '/upload/dau-goi-keratin.jpg', 'DAU-GOI-003', '450ml', 'Keratin, Dầu Argan', 3),
+(12, 'Dầu Gội Bạc Hà Mát Lạnh', 'Mang lại cảm giác mát lạnh sảng khoái, đánh bay gàu và bụi bẩn, giúp da đầu thư giãn.', 120000.00, 70, '/upload/dau-goi-bac-ha. jpg', 'DAU-GOI-004', '650ml', 'Tinh chất bạc hà', 3),
 (13, 'Sữa Tắm Dê Trắng Da', 'Tinh chất sữa dê giàu dưỡng chất giúp nuôi dưỡng làn da trắng sáng và mềm mịn như da em bé.', 150000.00, 60, '/upload/sua-tam-de.jpg', 'SUA-TAM-001', '1000ml', 'Sữa dê nguyên chất', 4),
 (14, 'Sữa Tắm Hương Nước Hoa', 'Lưu hương thơm nước hoa Pháp quyến rũ, sang trọng suốt nhiều giờ liền, tạo cảm giác tự tin.', 280000.00, 35, '/upload/sua-tam-nuoc-hoa.jpg', 'SUA-TAM-002', '500ml', 'Tinh dầu nước hoa', 4),
 (15, 'Sữa Tắm Hạt Mơ Tẩy Da Chết', 'Kết hợp các hạt massage từ hạt mơ giúp loại bỏ lớp sừng già cỗi, trả lại làn da láng mịn.', 160000.00, 40, '/upload/sua-tam-hat-mo.jpg', 'SUA-TAM-003', '400ml', 'Hạt mơ, Vitamin C', 4),
@@ -183,9 +202,9 @@ INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 9
 (9, '/upload/dau-goi-buoi-detail1.jpg'), (9, '/upload/dau-goi-buoi-detail2.jpg'), (9, '/upload/dau-goi-buoi-detail3.jpg'), (9, '/upload/dau-goi-buoi-usage.jpg'), (9, '/upload/dau-goi-buoi-texture.jpg'),
 -- Sản phẩm 10
-(10, '/upload/dau-goi-bo-ket-detail1.jpg'), (10, '/upload/dau-goi-bo-ket-detail2.jpg'), (10, '/upload/dau-goi-bo-ket-detail3.jpg'), (10, '/upload/dau-goi-bo-ket-usage.jpg'), (10, '/upload/dau-goi-bo-ket-texture.jpg'),
+(10, '/upload/dau-goi-bo-ket-detail1.jpg'), (10, '/upload/dau-goi-bo-ket-detail2.jpg'), (10, '/upload/dau-goi-bo-ket-detail3.jpg'), (10, '/upload/dau-goi-bo-ket-usage. jpg'), (10, '/upload/dau-goi-bo-ket-texture.jpg'),
 -- Sản phẩm 11
-(11, '/upload/dau-goi-keratin-detail1.jpg'), (11, '/upload/dau-goi-keratin-detail2.jpg'), (11, '/upload/dau-goi-keratin-detail3.jpg'), (11, '/upload/dau-goi-keratin-usage.jpg'), (11, '/upload/dau-goi-keratin-texture.jpg'),
+(11, '/upload/dau-goi-keratin-detail1.jpg'), (11, '/upload/dau-goi-keratin-detail2.jpg'), (11, '/upload/dau-goi-keratin-detail3.jpg'), (11, '/upload/dau-goi-keratin-usage. jpg'), (11, '/upload/dau-goi-keratin-texture.jpg'),
 -- Sản phẩm 12
 (12, '/upload/dau-goi-bac-ha-detail1.jpg'), (12, '/upload/dau-goi-bac-ha-detail2.jpg'), (12, '/upload/dau-goi-bac-ha-detail3.jpg'), (12, '/upload/dau-goi-bac-ha-usage.jpg'), (12, '/upload/dau-goi-bac-ha-texture.jpg'),
 -- Sản phẩm 13
@@ -197,20 +216,19 @@ INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 16
 (16, '/upload/sua-tam-gung-detail1.jpg'), (16, '/upload/sua-tam-gung-detail2.jpg'), (16, '/upload/sua-tam-gung-detail3.jpg'), (16, '/upload/sua-tam-gung-usage.jpg'), (16, '/upload/sua-tam-gung-texture.jpg');
 
-
 -- 5. EmailTemplates
 INSERT INTO EmailTemplates (name, subject, content, description) VALUES
-('Chào mừng khách hàng mới', 'Chào mừng bạn đến với Cosmetics Shop!', 
+('Chào mừng khách hàng mới', 'Chào mừng bạn đến với Cosmetics Shop! ', 
 '<h2>Xin chào {{customerName}}!</h2>
-<p>Chúng tôi rất vui mừng chào đón bạn đến với <strong>Cosmetics Shop</strong> - thiên đường mỹ phẩm chính hãng.</p>
+<p>Chúng tôi rất vui mừng chào đón bạn đến với <strong>Cosmetics Shop</strong> - thiên đường mỹ phẩm chính hãng. </p>
 <p>Hãy khám phá bộ sưu tập sản phẩm chăm sóc da và làm đẹp đa dạng của chúng tôi.</p>
 <p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email chào mừng khách hàng mới đăng ký'),
 
 ('Khuyến mãi đặc biệt', 'Ưu đãi đặc biệt dành cho bạn!', 
 '<h2>Chào {{customerName}}!</h2>
-<p>Chúng tôi có tin vui dành cho bạn! 🎉</p>
-<p><strong>GIẢM GIÁ LÊN ĐẾN 30%</strong> cho các dòng sản phẩm Kem dưỡng và Sữa rửa mặt trong tháng này.</p>
+<p>Chúng tôi có tin vui dành cho bạn!  🎉</p>
+<p><strong>GIẢM GIÁ LÊN ĐẾN 30%</strong> cho các dòng sản phẩm Kem dưỡng và Sữa rửa mặt trong tháng này. </p>
 <p>Đừng bỏ lỡ cơ hội chăm sóc làn da với giá ưu đãi!</p>
 <p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email thông báo khuyến mãi'),
@@ -222,9 +240,9 @@ INSERT INTO EmailTemplates (name, subject, content, description) VALUES
 <p>Trân trọng,<br/>Đội ngũ Cosmetics Shop</p>',
 'Mẫu email cảm ơn sau khi khách hàng đặt hàng');
 
-
 -- =====================================================================
--- BƯỚC 3: STORED PROCEDURE (Tạo đơn hàng tự động để test)
+-- BƯỚC 3:  STORED PROCEDURE (Tạo đơn hàng mẫu)
+-- ✅ CẬP NHẬT:  Thêm paymentMethod và paymentStatus ngẫu nhiên
 -- =====================================================================
 DELIMITER $$
 
@@ -240,29 +258,69 @@ BEGIN
     DECLARE newOrderId INT;
     DECLARE itemsPerOrder INT;
     DECLARE userAddress TEXT;
+    DECLARE userName VARCHAR(255);
+    DECLARE userPhone VARCHAR(20);
     DECLARE orderStatus ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled');
     DECLARE randomDate DATETIME;
+    
+    -- ✅ THÊM:  Biến cho payment
+    DECLARE randomPaymentMethod ENUM('COD', 'QRCODE');
+    DECLARE randomPaymentStatus ENUM('unpaid', 'paid');
 
     -- Lặp 50 lần để tạo 50 đơn hàng mẫu
     WHILE i < 50 DO
         SET i = i + 1;
         SET totalOrderAmount = 0;
         
-        -- SỬA LẠI DÒNG NÀY: Giảm hệ số nhân từ 5 xuống 4
-        -- Công thức: FLOOR(Min + RAND() * (Max - Min + 1))
-        -- Muốn random từ 2 đến 5 => FLOOR(2 + RAND() * 4)
+        -- Random userId từ 2 đến 5 (customer, không lấy admin)
         SET randomUserId = FLOOR(2 + (RAND() * 4));
         
-        -- Kiểm tra xem user có tồn tại không trước khi lấy địa chỉ (để an toàn hơn)
-        SELECT address INTO userAddress FROM Users WHERE id = randomUserId;
+        -- Lấy thông tin user
+        SELECT address, fullName, phone INTO userAddress, userName, userPhone 
+        FROM Users WHERE id = randomUserId;
         
-        -- Chỉ tạo đơn nếu tìm thấy user (tránh lỗi null address nếu logic sai)
+        -- Chỉ tạo đơn nếu tìm thấy user
         IF userAddress IS NOT NULL THEN
             SET orderStatus = ELT(FLOOR(1 + RAND() * 5), 'pending', 'processing', 'shipped', 'delivered', 'cancelled');
             SET randomDate = NOW() - INTERVAL FLOOR(RAND() * 180) DAY;
+            
+            -- ✅ THÊM:  Random payment method (70% COD, 30% QRCODE)
+            SET randomPaymentMethod = IF(RAND() < 0.7, 'COD', 'QRCODE');
+            
+            -- ✅ THÊM:  Quyết định payment status dựa vào payment method
+            -- - Nếu COD → luôn unpaid (chưa nhận hàng)
+            -- - Nếu QRCODE → 80% paid, 20% unpaid
+            IF randomPaymentMethod = 'COD' THEN
+                SET randomPaymentStatus = 'unpaid';
+            ELSE
+                SET randomPaymentStatus = IF(RAND() < 0.8, 'paid', 'unpaid');
+            END IF;
 
-            INSERT INTO Orders (userId, totalAmount, status, shippingAddress, customerNotes, createdAt)
-            VALUES (randomUserId, 0, orderStatus, userAddress, CONCAT('Đơn hàng mỹ phẩm mẫu #', i), randomDate);
+            -- ✅ CẬP NHẬT: INSERT với paymentMethod, paymentStatus, phone, fullName
+            INSERT INTO Orders (
+                userId, 
+                totalAmount, 
+                status, 
+                paymentMethod, 
+                paymentStatus, 
+                shippingAddress, 
+                phone, 
+                fullName, 
+                customerNotes, 
+                createdAt
+            )
+            VALUES (
+                randomUserId, 
+                0, 
+                orderStatus, 
+                randomPaymentMethod, 
+                randomPaymentStatus, 
+                userAddress, 
+                userPhone, 
+                userName, 
+                CONCAT('Đơn hàng mỹ phẩm mẫu #', i), 
+                randomDate
+            );
             
             SET newOrderId = LAST_INSERT_ID();
             
@@ -294,10 +352,38 @@ END$$
 
 DELIMITER ;
 
--- Chạy lại thủ tục
+-- Chạy procedure để tạo data mẫu
 CALL GenerateRandomOrders();
 
--- Xóa Procedure sau khi dùng xong (để sạch DB)
--- DROP PROCEDURE GenerateRandomOrders;
+-- Xóa Procedure sau khi dùng xong
+DROP PROCEDURE IF EXISTS GenerateRandomOrders;
 
 COMMIT;
+
+-- =====================================================================
+-- ✅ QUERY ĐỂ KIỂM TRA DỮ LIỆU
+-- =====================================================================
+
+-- Xem đơn hàng với payment info
+-- SELECT 
+--     id, 
+--     userId, 
+--     totalAmount, 
+--     status, 
+--     paymentMethod, 
+--     paymentStatus, 
+--     fullName, 
+--     phone,
+--     createdAt
+-- FROM Orders
+-- ORDER BY createdAt DESC
+-- LIMIT 10;
+
+-- Thống kê theo payment method
+-- SELECT 
+--     paymentMethod, 
+--     paymentStatus, 
+--     COUNT(*) as count, 
+--     SUM(totalAmount) as total
+-- FROM Orders
+-- GROUP BY paymentMethod, paymentStatus;

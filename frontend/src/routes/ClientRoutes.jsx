@@ -10,6 +10,7 @@ import Cart from '../pages/client/Cart';
 import Checkout from '../pages/client/Checkout';
 import OrderSuccess from '../pages/client/OrderSuccess';
 import Profile from '../pages/client/Profile';
+import Payment from '../pages/client/Payment';
 import About from '../pages/client/About';
 import Contact from '../pages/client/Contact';
 
@@ -48,6 +49,14 @@ export default function ClientRoutes() {
           element={
             <ProtectedRoute>
               <OrderSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="payment/:orderId"
+          element={
+            <ProtectedRoute>
+              <Payment />
             </ProtectedRoute>
           }
         />
