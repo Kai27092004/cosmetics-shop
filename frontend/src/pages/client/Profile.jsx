@@ -10,12 +10,17 @@ import Modal from '../../components/common/Modal';
 import showToast from '../../utils/toast';
 import Loading from '../../components/common/Loading';
 
+// 1. THÊM MỚI: Import hook useSocket để dùng real-time
+import { useSocket } from '../../hooks/useSocket'; // <--- THÊM MỚI
+
 export default function Profile() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, updateProfile, changePassword, logout } = useAuth();
+  
+  // 2. THÊM MỚI: Lấy socket instance
+  const { socket } = useSocket(); // <--- THÊM MỚI
 
-  // Nếu có state từ navigation, dùng nó. Nếu không, mặc định là 'profile'
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'profile');
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -38,7 +43,32 @@ export default function Profile() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
-  // Đọc state từ navigation để mở tab tương ứng
+  // --- 3. THÊM MỚI: Lắng nghe sự kiện thanh toán thành công ---
+  useEffect(() => {
+    if (!socket) return;
+
+    // Lắng nghe event từ Backend bắn sang
+    socket.on('order:payment_updated', (data) => {
+      console.log('🔔 Nhận tín hiệu thanh toán:', data);
+      
+      // Cập nhật lại danh sách orders mà không cần gọi API
+      setOrders(prevOrders => prevOrders.map(order => 
+        order.id === data.orderId 
+          ? { ...order, paymentStatus: 'paid', status: 'processing' } // Update trạng thái mới
+          : order
+      ));
+      
+      // Hiện thông báo cho người dùng vui
+      showToast.success(data.message || 'Thanh toán đơn hàng thành công!');
+    });
+
+    // Cleanup: Hủy lắng nghe khi thoát trang để tránh lỗi
+    return () => {
+      socket.off('order:payment_updated');
+    };
+  }, [socket]);
+  // ------------------------------------------------------------
+
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
@@ -65,7 +95,6 @@ export default function Profile() {
   };
 
   const handlePayment = (order) => {
-    // Navigate to payment page with order info
     navigate(`/payment/${order.id}`, {
       state: {
         orderId: order.id,
@@ -86,7 +115,6 @@ export default function Profile() {
       setLoading(true);
       await orderService.cancelOrder(selectedOrderId);
       
-      // Update orders list
       setOrders(orders.map(order => 
         order.id === selectedOrderId 
           ? { ...order, status: 'cancelled' }
@@ -429,9 +457,7 @@ export default function Profile() {
                             </div>
 
                             <div className="space-y-3 mb-4">
-                              {/* Kiểm tra cả items và orderItems */}
                               {(order.items || order.orderItems || []).map((item, index) => {
-                                // Nếu có product nested, dùng nó. Nếu không, item chính là product data
                                 const productData = item.product || item;
                                 
                                 return (
@@ -468,7 +494,6 @@ export default function Profile() {
                               </div>
                             </div>
 
-                            {/* Action Buttons */}
                             {(needPayment || canCancel) && (
                               <div className="flex gap-3 mt-4 pt-4 border-t">
                                 {needPayment && (
@@ -509,7 +534,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Cancel Order Modal */}
       <Modal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
