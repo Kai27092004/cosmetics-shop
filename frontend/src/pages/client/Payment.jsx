@@ -34,15 +34,15 @@ export default function Payment() {
 
   const generateQRCode = (orderId, amount) => {
     const bankInfo = {
-      bank: 'MBBank',
-      accountNumber: '0087680798',
+      bank: 'MB',
+      accountNumber: '00876807798',
       accountName: 'NGUYEN HOANG TAN PHAT',
       amount: amount,
       description: `DH${orderId}`,
     };
 
     // VietQR API cho MBBank
-    const qrUrl = `https://img.vietqr.io/image/MB-${bankInfo.accountNumber}-compact2.png?amount=${bankInfo.amount}&addInfo=${encodeURIComponent(bankInfo.description)}&accountName=${encodeURIComponent(bankInfo.accountName)}`;
+    const qrUrl = `https://img.vietqr.io/image/${bankInfo.bank}-${bankInfo.accountNumber}-compact2.png?amount=${bankInfo.amount}&addInfo=${encodeURIComponent(bankInfo.description)}&accountName=${encodeURIComponent(bankInfo.accountName)}`;
     
     setQrCodeUrl(qrUrl);
   };
@@ -198,10 +198,10 @@ export default function Payment() {
                   </label>
                   <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-xl border-2 border-purple-100 group-hover:border-purple-300 transition-colors">
                     <span className="font-mono font-bold text-gray-900 text-xl tracking-wider">
-                      0087680798
+                      00876807798
                     </span>
                     <button
-                      onClick={() => copyToClipboard('0087680798', 'số tài khoản')}
+                      onClick={() => copyToClipboard('00876807798', 'số tài khoản')}
                       className="p-2 hover:bg-purple-100 rounded-lg transition-colors"
                     >
                       <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
