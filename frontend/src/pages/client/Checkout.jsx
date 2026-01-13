@@ -30,12 +30,13 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
   useEffect(() => {
-    if (isEmpty) {
+    if (isEmpty && !isProcessingOrder) {
       navigate('/cart');
     }
-  }, [isEmpty, navigate]);
+  }, [isEmpty, isProcessingOrder, navigate]);
 
   if (isEmpty) {
     return null;
@@ -75,6 +76,7 @@ export default function Checkout() {
     }
 
     setLoading(true);
+    setIsProcessingOrder(true);
 
     try {
       const fullAddress = [
@@ -106,35 +108,40 @@ export default function Checkout() {
       // ✅ XỬ LÝ THEO PAYMENT METHOD
       if (paymentMethod === 'QRCODE') {
         // QR CODE → Redirect sang trang thanh toán
-        showToast.success('Đơn hàng đã tạo!  Vui lòng thanh toán.');
-        clearCart();
-
-        setTimeout(() => {
-          navigate(`/payment/${response.orderId}`, {
-            state: {
-              orderId: response.orderId,
-              totalAmount: response.totalAmount,
-            },
-          });
-        }, 1000);
+        showToast.success('Đơn hàng đã tạo! Vui lòng thanh toán.');
+        
+        // Navigate ngay lập tức, clear cart sau khi đã chuyển trang
+        navigate(`/payment/${response.orderId}`, {
+          state: {
+            orderId: response.orderId,
+            totalAmount: response.totalAmount,
+          },
+          replace: true,
+        });
+        
+        // Clear cart sau khi đã navigate
+        setTimeout(() => clearCart(), 100);
       } else {
         // COD → Redirect sang order success
         showToast.success('🎉 Đặt hàng thành công!');
-        clearCart();
-
-        setTimeout(() => {
-          navigate('/order-success', {
-            state: {
-              orderId: response.orderId,
-              totalAmount: response.totalAmount,
-            },
-          });
-        }, 1000);
+        
+        // Navigate ngay lập tức, clear cart sau khi đã chuyển trang
+        navigate('/order-success', {
+          state: {
+            orderId: response.orderId,
+            totalAmount: response.totalAmount,
+          },
+          replace: true,
+        });
+        
+        // Clear cart sau khi đã navigate
+        setTimeout(() => clearCart(), 100);
       }
 
     } catch (error) {
       console.error('❌ Order creation failed:', error);
-      showToast.error(error.message || 'Đặt hàng thất bại.  Vui lòng thử lại.');
+      showToast.error(error.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
+      setIsProcessingOrder(false);
     } finally {
       setLoading(false);
     }

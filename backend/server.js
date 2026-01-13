@@ -20,7 +20,9 @@ const allowedOrigins = [
     'http://localhost',
     'https://main.d3tqdtxbh1bkio.amplifyapp.com',
     'https://phatdev.id.vn',
-    'https://www.phatdev.id.vn'
+    'https://www.phatdev.id.vn',
+    'http://localhost:3000',
+    'http://18.143.182.157:3000'
 ];
 
 app.use(cors({
