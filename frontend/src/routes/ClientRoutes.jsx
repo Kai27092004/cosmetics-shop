@@ -17,6 +17,7 @@ import Contact from '../pages/client/Contact';
 // Auth
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+import GoogleCallback from '../pages/auth/GoogleCallback';
 
 /**
  * Client Routes - Routes cho user (customer)
@@ -34,7 +35,8 @@ export default function ClientRoutes() {
         <Route path="contact" element={<Contact />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        
+        <Route path="auth/google/callback" element={<GoogleCallback />} />
+
         {/* Protected Routes - Cần login */}
         <Route
           path="checkout"
