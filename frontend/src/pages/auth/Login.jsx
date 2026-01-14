@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import Input from '../../components/common/Input';
@@ -19,6 +19,17 @@ export default function Login() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Hiển thị thông báo nếu token hết hạn
+  useEffect(() => {
+    const expired = searchParams.get('expired');
+    if (expired === 'true') {
+      showToast.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+      // Xóa query param
+      searchParams.delete('expired');
+      navigate({ search: searchParams.toString() }, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

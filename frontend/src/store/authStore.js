@@ -117,11 +117,21 @@ export const useAuthStore = create(
         const userToken = localStorage.getItem('userToken');
         const adminToken = localStorage.getItem('adminToken');
         const userStr = localStorage.getItem('user');
-        const adminStr = localStorage. getItem('admin');
+        const adminStr = localStorage.getItem('admin');
 
+        // Kiểm tra và restore user session
         if (userToken && userStr) {
+          // Kiểm tra token có hết hạn không
+          const isExpired = get().isTokenExpired();
+          
+          if (isExpired) {
+            console.warn('⚠️ [Auth Store] User token expired on init, clearing session');
+            get().logoutUser();
+            return;
+          }
+
           try {
-            const user = JSON. parse(userStr);
+            const user = JSON.parse(userStr);
             console.log('🔄 [Auth Store] Restored user session:', user);
             set({
               user,
@@ -133,18 +143,29 @@ export const useAuthStore = create(
             console.error('❌ [Auth Store] Failed to restore user session:', error);
             get().logoutUser();
           }
-        } else if (adminToken && adminStr) {
+        } 
+        // Kiểm tra và restore admin session
+        else if (adminToken && adminStr) {
+          // Kiểm tra token có hết hạn không
+          const isExpired = get().isTokenExpired();
+          
+          if (isExpired) {
+            console.warn('⚠️ [Auth Store] Admin token expired on init, clearing session');
+            get().logoutAdmin();
+            return;
+          }
+
           try {
             const admin = JSON.parse(adminStr);
             console.log('🔄 [Auth Store] Restored admin session:', admin);
             set({
               admin,
               adminToken,
-              isAuthenticated:  true,
+              isAuthenticated: true,
               isAdmin: true,
             });
           } catch (error) {
-            console. error('❌ [Auth Store] Failed to restore admin session:', error);
+            console.error('❌ [Auth Store] Failed to restore admin session:', error);
             get().logoutAdmin();
           }
         } else {

@@ -26,7 +26,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link to="/about">
-                <Button size="lg" variant="outline" className="! border-white ! text-white hover:!bg-white hover:! text-purple-600">
+                <Button size="lg" variant="outline" className="! border-white ! text-whitehover:!bg-white hover:! text-purple-600">
                   Tìm hiểu thêm
                 </Button>
               </Link>
@@ -37,7 +37,7 @@ export default function Home() {
 
       {/* Features */}
       <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg: px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">

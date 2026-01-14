@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import useAuth from '../../../hooks/useAuth';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
@@ -7,6 +7,7 @@ import showToast from '../../../utils/toast';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { adminLogin } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -16,6 +17,17 @@ export default function AdminLogin() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Hiển thị thông báo nếu token hết hạn
+  useEffect(() => {
+    const expired = searchParams.get('expired');
+    if (expired === 'true') {
+      showToast.warning('Phiên đăng nhập admin đã hết hạn. Vui lòng đăng nhập lại!');
+      // Xóa query param
+      searchParams.delete('expired');
+      navigate({ search: searchParams.toString() }, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

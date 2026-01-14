@@ -46,16 +46,27 @@ clientAPI.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      console.warn('⚠️ [Client API] Unauthorized - Token expired or invalid');
+    const status = error.response?.status;
+    const errorCode = error.response?.data?.code;
+    
+    // Xử lý token hết hạn hoặc không hợp lệ
+    if (status === 401 && (errorCode === 'TOKEN_EXPIRED' || errorCode === 'INVALID_TOKEN' || errorCode === 'NO_TOKEN')) {
+      console.warn('⚠️ [Client API] Token expired/invalid - Auto logout');
       
-      // Xóa token và redirect về login
+      // Xóa token và user data
       localStorage.removeItem('userToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('auth-storage');
       
-      // Chỉ redirect nếu không phải đang ở trang login
-      if (! window.location.pathname.includes('/login')) {
-        window.location.href = '/login? expired=true';
+      // Dispatch custom event để trigger logout trong authStore
+      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'token_expired' } }));
+      
+      // Redirect về login nếu không phải đang ở trang login/register
+      if (!window.location.pathname.includes('/login') && 
+          !window.location.pathname.includes('/register')) {
+        setTimeout(() => {
+          window.location.href = '/login?expired=true';
+        }, 100);
       }
     }
 
@@ -63,12 +74,12 @@ clientAPI.interceptors.response.use(
     console.error('❌ [Client API] Error:', {
       url: error.config?.url,
       method: error.config?.method,
-      status: error.response?.status,
+      status: status,
+      code: errorCode,
       message: error.response?.data?.message || error.message,
-      data: error.response?.data,
     });
 
-    return Promise. reject(error);
+    return Promise.reject(error);
   }
 );
 
@@ -90,30 +101,41 @@ adminAPI.interceptors.request.use(
 );
 
 // Xử lý response lỗi
-adminAPI.interceptors. response.use(
+adminAPI.interceptors.response.use(
   (response) => {
     console.log('✅ [Admin API] Response:', response.config.url, response.status);
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      console.warn('⚠️ [Admin API] Unauthorized - Token expired or invalid');
+    const status = error.response?.status;
+    const errorCode = error.response?.data?.code;
+    
+    // Xử lý token hết hạn hoặc không hợp lệ
+    if (status === 401 && (errorCode === 'TOKEN_EXPIRED' || errorCode === 'INVALID_TOKEN' || errorCode === 'NO_TOKEN')) {
+      console.warn('⚠️ [Admin API] Token expired/invalid - Auto logout');
       
-      // Xóa token và redirect về admin login
+      // Xóa token và admin data
       localStorage.removeItem('adminToken');
       localStorage.removeItem('admin');
+      localStorage.removeItem('auth-storage');
       
+      // Dispatch custom event để trigger logout trong authStore
+      window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'token_expired', isAdmin: true } }));
+      
+      // Redirect về admin login
       if (!window.location.pathname.includes('/admin/login')) {
-        window.location.href = '/admin/login?expired=true';
+        setTimeout(() => {
+          window.location.href = '/admin/login?expired=true';
+        }, 100);
       }
     }
 
     console.error('❌ [Admin API] Error:', {
       url: error.config?.url,
       method: error.config?.method,
-      status: error.response?.status,
+      status: status,
+      code: errorCode,
       message: error.response?.data?.message || error.message,
-      data: error.response?.data,
     });
 
     return Promise.reject(error);
