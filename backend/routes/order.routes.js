@@ -33,6 +33,12 @@ router.put(
 // Endpoint for frontend to poll order status
 router.get('/:orderId/status', [isAuthenticated], controller.getOrderStatus);
 
+// Người dùng lấy chi tiết đơn hàng của chính họ
+router.get(
+    '/:orderId', 
+    [isAuthenticated], 
+    controller.getUserOrderDetails
+);
 
 // === ADMIN ROUTES ===
 

@@ -461,6 +461,48 @@ exports.adminDeleteOrder = async (req, res) => {
 };
 
 // =====================================================================
+// HÀM 7.5: LẤY CHI TIẾT ĐƠN HÀNG CỦA USER
+// =====================================================================
+exports.getUserOrderDetails = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const userId = req.userId;
+
+        const order = await db.Order.findOne({
+            where: {
+                id: orderId,
+                userId: userId
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['id', 'fullName', 'email', 'phone']
+                },
+                {
+                    model: db.OrderItem,
+                    as: 'orderItems',
+                    include: [{
+                        model: db.Product,
+                        as: 'product',
+                        attributes: ['id', 'name', 'imageUrl', 'price']
+                    }]
+                }
+            ]
+        });
+
+        if (!order) {
+            return res.status(404).send({ message: 'Không tìm thấy đơn hàng.' });
+        }
+
+        res.status(200).send(order);
+    } catch (error) {
+        console.error('Error fetching user order details:', error);
+        res.status(500).send({ message: 'Lỗi khi lấy chi tiết đơn hàng: ' + error.message });
+    }
+};
+
+// =====================================================================
 // HÀM 8: LẤY TRẠNG THÁI ĐƠN HÀNG (PUBLIC)
 // ✅ CẬP NHẬT:  Thêm paymentMethod và paymentStatus vào response
 // =====================================================================
