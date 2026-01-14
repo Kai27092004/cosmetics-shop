@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useCartStore } from '../../store/cartStore';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../styles/custom.css';
 
@@ -128,10 +128,11 @@ export default function Home() {
       // Hiển thị toast thành công ở giữa màn hình
       toast.success(`🛒 Đã thêm "${product.name}" vào giỏ hàng!`, {
         position: "top-center",
-        autoClose: 1500,
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: false,
+        pauseOnFocusLoss: false,
         draggable: true,
         progress: undefined,
         theme: "light",
@@ -148,10 +149,11 @@ export default function Home() {
       // Hiển thị toast lỗi
       toast.error('❌ Lỗi: Không thể thêm vào giỏ hàng!', {
         position: "top-center",
-        autoClose: 1500,
+        autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: false,
+        pauseOnFocusLoss: false,
         draggable: true,
         progress: undefined,
         theme: "light",
@@ -503,19 +505,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* React Toastify Container */}
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </div>
   );
 }
