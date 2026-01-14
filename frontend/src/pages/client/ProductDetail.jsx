@@ -5,7 +5,6 @@ import { getImageUrl } from '../../utils/helpers';
 import { formatCurrency } from '../../utils/formatters';
 import useCart from '../../hooks/useCart';
 import Loading from '../../components/common/Loading';
-import Button from '../../components/common/Button';
 import showToast from '../../utils/toast';
 
 export default function ProductDetail() {
@@ -17,6 +16,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -33,6 +33,18 @@ export default function ProductDetail() {
 
     fetchProduct();
   }, [id]);
+
+  // Get only sub-images (max 5), not including main image
+  const subImages = product?.images?.slice(0, 5) || [];
+
+  // Debug: Log product data
+  useEffect(() => {
+    if (product) {
+      console.log('📦 Product data:', product);
+      console.log('🖼️ Product sub-images:', product.images);
+      console.log('🎨 Sub-images to display:', subImages);
+    }
+  }, [product]);
 
   const handleQuantityChange = (value) => {
     const newQuantity = parseInt(value) || 1;
@@ -65,7 +77,7 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-pink-50/20 to-purple-50/20">
         <Loading size="lg" text="Đang tải sản phẩm..." />
       </div>
     );
@@ -73,168 +85,215 @@ export default function ProductDetail() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">❌ {error || 'Không tìm thấy sản phẩm'}</p>
-          <Button onClick={() => navigate('/products')}>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-pink-50/20 to-purple-50/20">
+        <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-12">
+          <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">❌</span>
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">Có lỗi xảy ra</h3>
+          <p className="text-red-600 mb-6">{error || 'Không tìm thấy sản phẩm'}</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+          >
             Quay lại danh sách sản phẩm
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-pink-50/20 to-purple-50/20 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
-          <Link to="/" className="hover:text-primary-600">Trang chủ</Link>
-          <span>/</span>
-          <Link to="/products" className="hover:text-primary-600">Sản phẩm</Link>
-          <span>/</span>
-          <span className="text-gray-900 font-medium">{product.name}</span>
+        <nav className="flex items-center gap-2 text-sm mb-8">
+          <Link to="/" className="text-gray-600 hover:text-pink-600 transition-colors font-semibold">
+            Trang chủ
+          </Link>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <Link to="/products" className="text-gray-600 hover:text-pink-600 transition-colors font-semibold">
+            Sản phẩm
+          </Link>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-gray-900 font-bold">{product.name}</span>
         </nav>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
-            {/* Image */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-12">
+            {/* Image Gallery */}
             <div>
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              {/* Main Image - Always show product.imageUrl */}
+              <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden mb-4 shadow-xl border-4 border-white">
                 <img
                   src={getImageUrl(product.imageUrl)}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
                     e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="600"%3E%3Crect fill="%23f0f0f0" width="600" height="600"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="24" dy="10" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }}
                 />
               </div>
+
+              {/* Sub-Images Thumbnails (Max 5) */}
+              {subImages.length > 0 && (
+                <div className="grid grid-cols-5 gap-3">
+                  {subImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className="aspect-square rounded-xl overflow-hidden ring-2 ring-gray-200 hover:ring-pink-300 hover:scale-105 transition-all shadow-md"
+                    >
+                      <img
+                        src={getImageUrl(image.imageUrl)}
+                        alt={`${product.name} - Ảnh ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E';
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Info */}
-            <div>
-              {/* Category */}
+            {/* Product Info */}
+            <div className="flex flex-col">
+              {/* Category Badge */}
               {product.category && (
-                <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                  {product.category.name}
-                </p>
+                <div className="mb-4">
+                  <span className="inline-block px-4 py-2 bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 rounded-full text-sm font-bold uppercase tracking-wide">
+                    {product.category.name}
+                  </span>
+                </div>
               )}
 
-              {/* Name */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              {/* Product Name */}
+              <h1 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4 leading-tight">
                 {product.name}
               </h1>
 
-              {/* Price */}
-              <div className="mb-6">
-                <p className="text-4xl font-bold text-primary-600 mb-2">
-                  {formatCurrency(product. price)}
-                </p>
-                {product.stockQuantity > 0 ?  (
-                  <p className="text-green-600 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Còn {product.stockQuantity} sản phẩm
+              {/* Price & Stock */}
+              <div className="mb-8 pb-8 border-b border-gray-200">
+                <div className="flex items-baseline gap-3 mb-4">
+                  <p className="text-5xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                    {formatCurrency(product.price)}
                   </p>
+                </div>
+                {product.stockQuantity > 0 ? (
+                  <div className="flex items-center gap-2 text-green-600 font-semibold">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span>Còn {product.stockQuantity} sản phẩm</span>
+                  </div>
                 ) : (
-                  <p className="text-red-600 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    Hết hàng
-                  </p>
+                  <div className="flex items-center gap-2 text-red-600 font-semibold">
+                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span>Hết hàng</span>
+                  </div>
                 )}
               </div>
 
               {/* Description */}
               {product.description && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                <div className="mb-8">
+                  <h2 className="text-xl font-black text-gray-900 mb-3 flex items-center gap-2">
+                    <span className="text-2xl">📝</span>
                     Mô tả sản phẩm
                   </h2>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     {product.description}
                   </p>
                 </div>
               )}
 
-              {/* Quantity */}
+              {/* Quantity Selector */}
               {product.stockQuantity > 0 && (
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <div className="mb-8">
+                  <label className="block text-lg font-black text-gray-900 mb-3">
                     Số lượng
                   </label>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleQuantityChange(quantity - 1)}
                       disabled={quantity <= 1}
-                      className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 rounded-xl hover:from-pink-100 hover:to-purple-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M20 12H4" />
                       </svg>
                     </button>
                     <input
                       type="number"
                       value={quantity}
                       onChange={(e) => handleQuantityChange(e.target.value)}
-                      className="w-20 text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-24 text-center text-2xl font-black border-2 border-gray-300 rounded-xl py-3 focus:outline-none focus:border-pink-500 transition-all"
                       min="1"
                       max={product.stockQuantity}
                     />
                     <button
                       onClick={() => handleQuantityChange(quantity + 1)}
                       disabled={quantity >= product.stockQuantity}
-                      className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 rounded-xl hover:from-pink-100 hover:to-purple-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-110"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
                       </svg>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex gap-4">
-                {product.stockQuantity > 0 ?  (
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                {product.stockQuantity > 0 ? (
                   <>
-                    <Button
-                      variant="outline"
-                      size="lg"
+                    <button
                       onClick={handleAddToCart}
-                      className="flex-1"
+                      className="flex-1 px-8 py-4 border-2 border-pink-500 text-pink-600 font-black rounded-xl hover:bg-pink-50 transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-lg"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-. 63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       {isInCart(product.id) ? 'Thêm nữa' : 'Thêm vào giỏ'}
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="lg"
+                    </button>
+                    <button
                       onClick={handleBuyNow}
-                      className="flex-1"
+                      className="flex-1 px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all text-lg"
                     >
                       Mua ngay
-                    </Button>
+                    </button>
                   </>
                 ) : (
-                  <Button variant="secondary" size="lg" disabled fullWidth>
+                  <button
+                    disabled
+                    className="w-full px-8 py-4 bg-gray-300 text-gray-500 font-black rounded-xl cursor-not-allowed text-lg"
+                  >
                     Hết hàng
-                  </Button>
+                  </button>
                 )}
               </div>
 
               {/* In Cart Info */}
               {isInCart(product.id) && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 text-sm flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl">
+                  <p className="text-green-800 font-bold flex items-center gap-2">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
                     Sản phẩm đã có {getItemQuantity(product.id)} trong giỏ hàng
                   </p>
                 </div>

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import ScrollToTopButton from '../common/ScrollToTopButton';
+import FloatingContact from '../common/FloatingContact';
 
 /**
  * MainLayout - Layout chính cho client pages
@@ -23,6 +24,9 @@ export default function MainLayout() {
 
       {/* Scroll to Top Button */}
       <ScrollToTopButton />
+
+      {/* Floating Contact Buttons */}
+      <FloatingContact />
     </div>
   );
 }
