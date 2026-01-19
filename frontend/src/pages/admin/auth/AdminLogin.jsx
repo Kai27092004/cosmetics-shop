@@ -63,7 +63,7 @@ export default function AdminLogin() {
 
     const result = await adminLogin({
       email: formData.email,
-      password: formData. password,
+      password: formData.password,
     });
 
     setLoading(false);
@@ -107,7 +107,7 @@ export default function AdminLogin() {
               label="Email Admin"
               type="email"
               name="email"
-              value={formData. email}
+              value={formData.email}
               onChange={handleChange}
               error={errors.email}
               placeholder="admin@cosmetics-shop.com"
@@ -121,7 +121,7 @@ export default function AdminLogin() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              error={errors. password}
+              error={errors.password}
               placeholder="••••••••"
               required
               disabled={loading}
