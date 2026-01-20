@@ -1,7 +1,4 @@
 SET NAMES utf8mb4;
-
--- DROP DATABASE IF EXISTS cosmetics_db; -- Uncomment nếu muốn xóa làm lại từ đầu
-
 CREATE DATABASE IF NOT EXISTS cosmetics_db 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
@@ -184,7 +181,7 @@ INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `
 -- 4. ProductImages (5 ảnh phụ cho mỗi sản phẩm)
 INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 1
-(1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1.jpg'),
+(1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1-2.jpg'), (1, '/upload/son-duong-am-1-3.jpg'), (1, '/son-duong-am-1-4.jpg'), (1, '/upload/son-duong-am-1-5.jpg'),
 -- Sản phẩm 2
 (2, '/upload/kem-ngoc-trai-detail1.jpg'), (2, '/upload/kem-ngoc-trai-detail2.jpg'), (2, '/upload/kem-ngoc-trai-detail3.jpg'), (2, '/upload/kem-ngoc-trai-usage.jpg'), (2, '/upload/kem-ngoc-trai-texture.jpg'),
 -- Sản phẩm 3

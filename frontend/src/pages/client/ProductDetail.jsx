@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -24,6 +25,8 @@ export default function ProductDetail() {
         setLoading(true);
         const data = await productService.getProductById(id);
         setProduct(data);
+        setSelectedImage(0); // Reset to main image when product changes
+        setCurrentSlide(0); // Reset carousel to first slide
       } catch (err) {
         setError(err.message || 'Không thể tải thông tin sản phẩm');
       } finally {
@@ -34,17 +37,30 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  // Get only sub-images (max 5), not including main image
-  const subImages = product?.images?.slice(0, 5) || [];
+  // Combine main image with sub-images (max 6 total: 1 main + 5 sub)
+  const allImages = product ? [
+    { imageUrl: product.imageUrl, isMain: true },
+    ...(product.images?.slice(0, 5).map(img => ({ ...img, isMain: false })) || [])
+  ] : [];
+
+  // Carousel logic: Show 5 thumbnails at a time
+  const THUMBNAILS_PER_PAGE = 5;
+  const totalSlides = Math.ceil(allImages.length / THUMBNAILS_PER_PAGE);
+  const startIndex = currentSlide * THUMBNAILS_PER_PAGE;
+  const endIndex = startIndex + THUMBNAILS_PER_PAGE;
+  const visibleThumbnails = allImages.slice(startIndex, endIndex);
 
   // Debug: Log product data
   useEffect(() => {
     if (product) {
       console.log('📦 Product data:', product);
-      console.log('🖼️ Product sub-images:', product.images);
-      console.log('🎨 Sub-images to display:', subImages);
+      console.log('🖼️ Product images:', product.images);
+      console.log('🎨 All images array:', allImages);
+      console.log('🔍 Selected image index:', selectedImage);
+      console.log('🎠 Current slide:', currentSlide, '/', totalSlides - 1);
+      console.log('👀 Visible thumbnails:', visibleThumbnails);
     }
-  }, [product]);
+  }, [product, selectedImage, currentSlide]);
 
   const handleQuantityChange = (value) => {
     const newQuantity = parseInt(value) || 1;
@@ -55,6 +71,14 @@ export default function ProductDetail() {
     } else {
       setQuantity(newQuantity);
     }
+  };
+
+  const handlePrevSlide = () => {
+    setCurrentSlide(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlide(prev => Math.min(totalSlides - 1, prev + 1));
   };
 
   const handleAddToCart = () => {
@@ -127,10 +151,10 @@ export default function ProductDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-12">
             {/* Image Gallery */}
             <div>
-              {/* Main Image - Always show product.imageUrl */}
+              {/* Main Image - Show selected image */}
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden mb-4 shadow-xl border-4 border-white">
                 <img
-                  src={getImageUrl(product.imageUrl)}
+                  src={getImageUrl(allImages[selectedImage]?.imageUrl || product.imageUrl)}
                   alt={product.name}
                   className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
@@ -139,24 +163,62 @@ export default function ProductDetail() {
                 />
               </div>
 
-              {/* Sub-Images Thumbnails (Max 5) */}
-              {subImages.length > 0 && (
-                <div className="grid grid-cols-5 gap-3">
-                  {subImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square rounded-xl overflow-hidden ring-2 ring-gray-200 hover:ring-pink-300 hover:scale-105 transition-all shadow-md"
+              {/* Image Thumbnails Carousel (Show 5 at a time) */}
+              {allImages.length > 0 && (
+                <div className="relative">
+                  {/* Left Arrow Button */}
+                  {totalSlides > 1 && (
+                    <button
+                      onClick={handlePrevSlide}
+                      disabled={currentSlide === 0}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-pink-50 hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white"
+                      aria-label="Previous thumbnails"
                     >
-                      <img
-                        src={getImageUrl(image.imageUrl)}
-                        alt={`${product.name} - Ảnh ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E';
-                        }}
-                      />
-                    </div>
-                  ))}
+                      <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Thumbnails Grid */}
+                  <div className="grid grid-cols-5 gap-3">
+                    {visibleThumbnails.map((image, visibleIndex) => {
+                      const actualIndex = startIndex + visibleIndex;
+                      return (
+                        <div
+                          key={actualIndex}
+                          onClick={() => setSelectedImage(actualIndex)}
+                          className={`aspect-square rounded-xl overflow-hidden ring-2 transition-all shadow-md cursor-pointer ${selectedImage === actualIndex
+                              ? 'ring-pink-500 ring-4 scale-105 shadow-lg'
+                              : 'ring-gray-200 hover:ring-pink-300 hover:scale-105'
+                            }`}
+                        >
+                          <img
+                            src={getImageUrl(image.imageUrl)}
+                            alt={`${product.name} - ${image.isMain ? 'Ảnh chính' : `Ảnh ${actualIndex}`}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E';
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Right Arrow Button */}
+                  {totalSlides > 1 && (
+                    <button
+                      onClick={handleNextSlide}
+                      disabled={currentSlide === totalSlides - 1}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-pink-50 hover:scale-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white"
+                      aria-label="Next thumbnails"
+                    >
+                      <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
