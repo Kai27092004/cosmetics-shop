@@ -26,9 +26,9 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const { fullName, phone, address } = req.body;
-        
+
         const user = await User.findByPk(req.userId);
-        
+
         if (!user) {
             return res.status(404).send({ message: "Không tìm thấy người dùng." });
         }
@@ -56,16 +56,16 @@ exports.changePassword = async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
         const bcrypt = require('bcryptjs');
-        
+
         const user = await User.findByPk(req.userId);
-        
+
         if (!user) {
             return res.status(404).send({ message: "Không tìm thấy người dùng." });
         }
 
         // Kiểm tra mật khẩu cũ
         const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
-        
+
         if (!isPasswordValid) {
             return res.status(400).send({ message: "Mật khẩu cũ không đúng." });
         }
@@ -126,7 +126,7 @@ exports.getUserStats = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
     try {
         const { search, role } = req.query;
-        
+
         // Tạo điều kiện where
         let whereClause = {};
         if (search) {
@@ -158,7 +158,7 @@ exports.getAllUsers = async (req, res) => {
             const orders = user.orders || [];
             const totalOrders = orders.length;
             const totalSpent = orders.reduce((sum, order) => sum + parseFloat(order.totalAmount || 0), 0);
-            
+
             return {
                 ...user.toJSON(),
                 stats: {
@@ -178,7 +178,7 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         const { fullName, email, password, phone, address, role } = req.body;
-        
+
         // Kiểm tra email đã tồn tại chưa
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
