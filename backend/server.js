@@ -33,7 +33,7 @@ app.use(cors({
             callback(new Error('Domain này không được phép bởi CORS'));
         }
     },
-    credentials:  true
+    credentials: true
 }));
 
 app.use(express.json());
@@ -45,7 +45,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env. NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
@@ -80,6 +80,7 @@ app.use('/api/orders', require('./routes/order.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/chatbot', require('./routes/chatbot.routes'));
 app.use('/api/email', require('./routes/email.routes'));
+app.use('/api/upload', require('./routes/upload.routes'));
 require('./routes/payment.routes')(app);
 
 // Xuất biến app ra để file khác (lambda. js) có thể dùng

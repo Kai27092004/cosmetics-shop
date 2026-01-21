@@ -7,11 +7,11 @@ const { Op } = require('sequelize');
 exports.getAllProducts = async (req, res) => {
     const { categoryId, search } = req.query;
     const whereCondition = {};
-    
+
     if (categoryId) {
         whereCondition.categoryId = categoryId;
     }
-    
+
     // Thêm điều kiện tìm kiếm theo tên hoặc mô tả
     if (search) {
         whereCondition[Op.or] = [
@@ -19,15 +19,22 @@ exports.getAllProducts = async (req, res) => {
             { description: { [Op.like]: `%${search}%` } }
         ];
     }
-    
+
     try {
         const products = await Product.findAll({
             where: whereCondition, // Thêm điều kiện lọc vào đây
-            include: [{
-                model: Category,
-                as: 'category',
-                attributes: ['id', 'name'] // Chỉ lấy id và name của category
-            }]
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    attributes: ['id', 'name'] // Chỉ lấy id và name của category
+                },
+                {
+                    model: db.ProductImage,
+                    as: 'images',
+                    attributes: ['id', 'imageUrl']
+                }
+            ]
         });
         res.status(200).send(products);
     } catch (error) {
@@ -82,8 +89,8 @@ exports.createProduct = async (req, res) => {
         // Chuẩn hóa đường dẫn ảnh về dạng "/upload/ten-anh.jpg"
         let normalizedImageUrl = imageUrl || '';
         if (normalizedImageUrl && !normalizedImageUrl.startsWith('/upload/')) {
-             // Logic này tùy thuộc vào cách Frontend gửi lên, giữ nguyên logic cũ của bạn nếu cần
-             // Hoặc nếu bạn gửi full path thì có thể bỏ qua bước check này
+            // Logic này tùy thuộc vào cách Frontend gửi lên, giữ nguyên logic cũ của bạn nếu cần
+            // Hoặc nếu bạn gửi full path thì có thể bỏ qua bước check này
         }
 
         // 1. Tạo Sản phẩm chính
@@ -104,14 +111,14 @@ exports.createProduct = async (req, res) => {
                 productId: product.id,
                 imageUrl: imgUrl
             }));
-            
+
             // Dùng bulkCreate để thêm nhiều dòng cùng lúc cho nhanh
             await db.ProductImage.bulkCreate(imageRecords, { transaction: t });
         }
 
         // Nếu mọi thứ OK, lưu vào DB
         await t.commit();
-    // Trả về kết quả
+        // Trả về kết quả
         res.status(201).send({
             message: "Tạo sản phẩm thành công!",
             data: product
@@ -125,22 +132,20 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-    // Lấy id của sản phẩm từ URL, ví dụ: /api/products/12
-    const id = req.params.id; 
+    const id = req.params.id;
+    const t = await db.sequelize.transaction();
+
     try {
-        // Tìm sản phẩm trong database bằng id (Primary Key)
         const product = await Product.findByPk(id);
 
-        // Nếu tìm thấy sản phẩm
         if (product) {
-            // Dùng hàm update của Sequelize để cập nhật sản phẩm với dữ liệu mới
-            // Dữ liệu mới được lấy từ body của request
             const {
                 name,
                 description,
                 price,
                 stockQuantity,
                 imageUrl,
+                subImages,   // Mảng ảnh phụ mới
                 sku,
                 dimensions,
                 material,
@@ -154,6 +159,7 @@ exports.updateProduct = async (req, res) => {
                 normalizedImageUrl = `/upload/${filename}`;
             }
 
+            // 1. Cập nhật thông tin sản phẩm
             await product.update({
                 name,
                 description,
@@ -164,18 +170,43 @@ exports.updateProduct = async (req, res) => {
                 dimensions: dimensions !== undefined ? dimensions : product.dimensions,
                 material: material !== undefined ? material : product.material,
                 categoryId: categoryId !== undefined ? (categoryId ? Number(categoryId) : null) : product.categoryId
-            });
-            res.status(200).send({ 
+            }, { transaction: t });
+
+            // 2. Xử lý ảnh phụ (chỉ khi có subImages trong request)
+            if (subImages !== undefined && Array.isArray(subImages)) {
+                // Xóa tất cả ảnh phụ cũ
+                await db.ProductImage.destroy({
+                    where: { productId: id },
+                    transaction: t
+                });
+
+                // Thêm ảnh phụ mới (chỉ những ảnh không rỗng)
+                if (subImages.length > 0) {
+                    const validImages = subImages.filter(url => url && url.trim() !== '');
+                    if (validImages.length > 0) {
+                        const imageRecords = validImages.map(imgUrl => ({
+                            productId: product.id,
+                            imageUrl: imgUrl
+                        }));
+                        await db.ProductImage.bulkCreate(imageRecords, { transaction: t });
+                    }
+                }
+            }
+
+            await t.commit();
+
+            res.status(200).send({
                 message: "Cập nhật sản phẩm thành công.",
-                data: product 
+                data: product
             });
         } else {
-            // Nếu không tìm thấy, trả về lỗi 404
-            res.status(404).send({ 
-                message: `Không tìm thấy sản phẩm với id=${id}.` 
+            await t.rollback();
+            res.status(404).send({
+                message: `Không tìm thấy sản phẩm với id=${id}.`
             });
         }
     } catch (error) {
+        await t.rollback();
         res.status(500).send({ message: "Lỗi khi cập nhật sản phẩm: " + error.message });
     }
 };
@@ -193,13 +224,13 @@ exports.deleteProduct = async (req, res) => {
         // Hàm destroy trả về số lượng bản ghi đã được xóa.
         // Nếu số lượng là 1, có nghĩa là đã xóa thành công.
         if (num == 1) {
-            res.status(200).send({ 
-                message: "Xóa sản phẩm thành công!" 
+            res.status(200).send({
+                message: "Xóa sản phẩm thành công!"
             });
         } else {
             // Nếu số lượng là 0, tức là không tìm thấy sản phẩm để xóa.
-            res.status(404).send({ 
-                message: `Không tìm thấy sản phẩm với id=${id} để xóa.` 
+            res.status(404).send({
+                message: `Không tìm thấy sản phẩm với id=${id} để xóa.`
             });
         }
     } catch (error) {

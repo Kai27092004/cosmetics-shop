@@ -1,95 +1,72 @@
 import { useMemo } from 'react';
-import { formatCurrency, formatNumber } from '../../../utils/formatters';
+import { FaBox, FaDollarSign, FaBoxes, FaExclamationTriangle } from 'react-icons/fa';
 
 export default function ProductStats({ products }) {
   const stats = useMemo(() => {
-    if (!products || products.length === 0) {
-      return {
-        total: 0,
-        totalValue: 0,
-        inStock: 0,
-        outOfStock: 0,
-        lowStock: 0,
-      };
-    }
-
-    const total = products.length;
+    const totalProducts = products.length;
     const totalValue = products.reduce((sum, p) => sum + (p.price * p.stockQuantity), 0);
-    const inStock = products.filter(p => p.stockQuantity > 10).length;
-    const outOfStock = products.filter(p => p.stockQuantity === 0).length;
-    const lowStock = products.filter(p => p.stockQuantity > 0 && p.stockQuantity <= 10).length;
+    const totalStock = products.reduce((sum, p) => sum + p.stockQuantity, 0);
+    const lowStock = products.filter(p => p.stockQuantity > 0 && p.stockQuantity < 10).length;
 
-    return { total, totalValue, inStock, outOfStock, lowStock };
+    return [
+      {
+        label: 'Tổng sản phẩm',
+        value: totalProducts,
+        icon: FaBox,
+        color: 'blue',
+      },
+      {
+        label: 'Giá trị kho',
+        value: new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND',
+        }).format(totalValue),
+        icon: FaDollarSign,
+        color: 'green',
+      },
+      {
+        label: 'Tổng tồn kho',
+        value: totalStock.toLocaleString('vi-VN'),
+        icon: FaBoxes,
+        color: 'purple',
+      },
+      {
+        label: 'Sắp hết hàng',
+        value: lowStock,
+        icon: FaExclamationTriangle,
+        color: 'red',
+      },
+    ];
   }, [products]);
 
-  const statCards = [
-    {
-      title: 'Tổng sản phẩm',
-      value: formatNumber(stats.total),
-      icon: '📦',
-      color: 'blue',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
-      iconBg: 'bg-blue-100',
-    },
-    {
-      title: 'Giá trị kho',
-      value: formatCurrency(stats.totalValue),
-      icon: '💰',
-      color: 'green',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
-      iconBg: 'bg-green-100',
-    },
-    {
-      title: 'Còn hàng',
-      value: formatNumber(stats.inStock),
-      icon: '✅',
-      color: 'emerald',
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-700',
-      iconBg: 'bg-emerald-100',
-    },
-    {
-      title: 'Sắp hết',
-      value: formatNumber(stats.lowStock),
-      icon: '⚠️',
-      color:  'yellow',
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-700',
-      iconBg: 'bg-yellow-100',
-    },
-    {
-      title: 'Hết hàng',
-      value: formatNumber(stats.outOfStock),
-      icon: '❌',
-      color: 'red',
-      bgColor: 'bg-red-50',
-      textColor: 'text-red-700',
-      iconBg: 'bg-red-100',
-    },
-  ];
+  const colorClasses = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-green-100 text-green-600',
+    purple: 'bg-purple-100 text-purple-600',
+    red: 'bg-red-100 text-red-600',
+  };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      {statCards.map((stat, index) => (
-        <div
-          key={index}
-          className={`${stat.bgColor} rounded-lg p-6 border border-${stat.color}-200 hover:shadow-md transition-shadow`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className={`w-12 h-12 ${stat.iconBg} rounded-lg flex items-center justify-center`}>
-              <span className="text-2xl">{stat. icon}</span>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={index}
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
+              </div>
+              <div className={`p-3 rounded-full ${colorClasses[stat.color]}`}>
+                <Icon className="w-6 h-6" />
+              </div>
             </div>
           </div>
-          <p className="text-sm font-medium text-gray-600 mb-1">
-            {stat.title}
-          </p>
-          <p className={`text-2xl font-bold ${stat.textColor}`}>
-            {stat.value}
-          </p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

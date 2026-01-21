@@ -2,7 +2,7 @@ import { getImageUrl } from '../../../utils/helpers';
 import { formatCurrency } from '../../../utils/formatters';
 
 export default function ProductTable({ products, onEdit, onDelete }) {
-  if (! products || products.length === 0) {
+  if (!products || products.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,8 +46,8 @@ export default function ProductTable({ products, onEdit, onDelete }) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {products.map((product) => (
-              <tr 
-                key={product.id} 
+              <tr
+                key={product.id}
                 className="hover:bg-gray-50 transition-colors"
               >
                 {/* Sản phẩm */}
@@ -89,7 +89,7 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                 {/* Giá */}
                 <td className="px-6 py-4">
                   <div className="text-sm font-bold text-gray-900">
-                    {formatCurrency(product. price)}
+                    {formatCurrency(product.price)}
                   </div>
                 </td>
 
@@ -97,15 +97,14 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${
-                        product.stockQuantity > 50
+                      className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${product.stockQuantity > 50
                           ? 'text-green-700 bg-green-100'
                           : product.stockQuantity > 10
-                          ? 'text-yellow-700 bg-yellow-100'
-                          : product.stockQuantity > 0
-                          ? 'text-orange-700 bg-orange-100'
-                          : 'text-red-700 bg-red-100'
-                      }`}
+                            ? 'text-yellow-700 bg-yellow-100'
+                            : product.stockQuantity > 0
+                              ? 'text-orange-700 bg-orange-100'
+                              : 'text-red-700 bg-red-100'
+                        }`}
                     >
                       {product.stockQuantity}
                     </span>
@@ -135,7 +134,7 @@ export default function ProductTable({ products, onEdit, onDelete }) {
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => onEdit(product. id)}
+                      onClick={() => onEdit(product)}
                       className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                       title="Chỉnh sửa"
                     >
