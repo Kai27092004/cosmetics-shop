@@ -1,125 +1,78 @@
 import { useMemo } from 'react';
-import { formatCurrency, formatNumber } from '../../../../utils/formatters';
+import { FaShoppingCart, FaDollarSign, FaClock, FaCheckCircle } from 'react-icons/fa';
 
 export default function OrderStats({ orders }) {
   const stats = useMemo(() => {
-    if (!orders || orders.length === 0) {
-      return {
-        total: 0,
-        totalRevenue: 0,
-        pending: 0,
-        processing:  0,
-        shipped: 0,
-        delivered: 0,
-        cancelled: 0,
-      };
-    }
+    const totalOrders = orders.length;
 
-    const total = orders.length;
-    const totalRevenue = orders
-      .filter(o => ['delivered', 'shipped', 'processing'].includes(o.status))
-      .reduce((sum, o) => sum + o.totalAmount, 0);
-    const pending = orders.filter(o => o.status === 'pending').length;
-    const processing = orders.filter(o => o.status === 'processing').length;
-    const shipped = orders.filter(o => o.status === 'shipped').length;
-    const delivered = orders.filter(o => o.status === 'delivered').length;
-    const cancelled = orders.filter(o => o.status === 'cancelled').length;
+    // Calculate revenue from delivered orders only
+    const deliveredOrders = orders.filter(o => o.status === 'delivered');
+    const totalRevenue = deliveredOrders.length > 0
+      ? deliveredOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
+      : 0;
 
-    return { total, totalRevenue, pending, processing, shipped, delivered, cancelled };
+    const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+    const completedOrders = deliveredOrders.length;
+
+    return [
+      {
+        label: 'Tổng đơn hàng',
+        value: totalOrders,
+        icon: FaShoppingCart,
+        color: 'blue',
+      },
+      {
+        label: 'Tổng doanh thu',
+        value: new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND',
+        }).format(totalRevenue),
+        icon: FaDollarSign,
+        color: 'green',
+      },
+      {
+        label: 'Đang xử lý',
+        value: pendingOrders,
+        icon: FaClock,
+        color: 'yellow',
+      },
+      {
+        label: 'Hoàn thành',
+        value: completedOrders,
+        icon: FaCheckCircle,
+        color: 'emerald',
+      },
+    ];
   }, [orders]);
 
-  const statCards = [
-    {
-      title: 'Tổng đơn hàng',
-      value: formatNumber(stats.total),
-      icon: '📦',
-      color: 'blue',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
-      borderColor: 'border-blue-200',
-    },
-    {
-      title: 'Doanh thu',
-      value: formatCurrency(stats.totalRevenue),
-      icon: '💰',
-      color: 'green',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
-      borderColor: 'border-green-200',
-    },
-    {
-      title: 'Chờ xử lý',
-      value: formatNumber(stats.pending),
-      icon: '🕐',
-      color: 'yellow',
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-700',
-      borderColor: 'border-yellow-200',
-      highlight: stats.pending > 0,
-    },
-    {
-      title: 'Đang xử lý',
-      value: formatNumber(stats.processing),
-      icon: '⚙️',
-      color: 'blue',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-700',
-      borderColor: 'border-blue-200',
-    },
-    {
-      title: 'Đang giao',
-      value: formatNumber(stats.shipped),
-      icon: '🚚',
-      color: 'purple',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-700',
-      borderColor: 'border-purple-200',
-    },
-    {
-      title: 'Đã giao',
-      value: formatNumber(stats.delivered),
-      icon: '✅',
-      color: 'green',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-700',
-      borderColor: 'border-green-200',
-    },
-    {
-      title: 'Đã hủy',
-      value: formatNumber(stats.cancelled),
-      icon: '❌',
-      color: 'red',
-      bgColor: 'bg-red-50',
-      textColor: 'text-red-700',
-      borderColor: 'border-red-200',
-    },
-  ];
+  const colorClasses = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-green-100 text-green-600',
+    yellow: 'bg-yellow-100 text-yellow-600',
+    emerald: 'bg-emerald-100 text-emerald-600',
+  };
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
-      {statCards.map((stat, index) => (
-        <div
-          key={index}
-          className={`${stat.bgColor} rounded-lg p-4 border-2 ${stat.borderColor} hover:shadow-md transition-all ${
-            stat.highlight ? 'ring-2 ring-yellow-400 animate-pulse' : ''
-          }`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-3xl">{stat.icon}</span>
-            {stat.highlight && (
-              <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-200 rounded-full animate-bounce">
-                Cần xử lý!
-              </span>
-            )}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={index}
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
+              </div>
+              <div className={`p-3 rounded-full ${colorClasses[stat.color]}`}>
+                <Icon className="w-6 h-6" />
+              </div>
+            </div>
           </div>
-          <p className="text-xs font-medium text-gray-600 mb-1">
-            {stat.title}
-          </p>
-          <p className={`text-xl font-bold ${stat.textColor}`}>
-            {stat.value}
-          </p>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
