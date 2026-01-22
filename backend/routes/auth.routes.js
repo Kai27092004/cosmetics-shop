@@ -6,18 +6,20 @@ const passport = require('../config/passport');
 // Đăng ký và đăng nhập thông thường
 router.post('/register', controller.register);
 router.post('/login', controller.login);
+router.post('/forgot-password', controller.forgotPassword);
+router.post('/reset-password/:token', controller.resetPassword);
 
 // Google OAuth Routes
 router.get('/google',
-    passport.authenticate('google', { 
-        scope: ['profile', 'email'] 
+    passport.authenticate('google', {
+        scope: ['profile', 'email']
     })
 );
 
 router.get('/google/callback',
-    passport.authenticate('google', { 
+    passport.authenticate('google', {
         failureRedirect: '/api/auth/google/failure',
-        session: false 
+        session: false
     }),
     controller.googleCallback
 );

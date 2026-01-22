@@ -18,6 +18,8 @@ import Contact from '../pages/client/Contact';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import GoogleCallback from '../pages/auth/GoogleCallback';
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 
 /**
  * Client Routes - Routes cho user (customer)
@@ -36,6 +38,8 @@ export default function ClientRoutes() {
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="auth/google/callback" element={<GoogleCallback />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password/:token" element={<ResetPassword />} />
 
         {/* Protected Routes - Cần login */}
         <Route

@@ -11,8 +11,8 @@ export const authService = {
    */
   register: async (userData) => {
     try {
-      console.log('📝 [Auth Service] Registering user:', userData. email);
-      
+      console.log('📝 [Auth Service] Registering user:', userData.email);
+
       const { data } = await clientAPI.post(API_ENDPOINTS.REGISTER, {
         fullName: userData.fullName,
         email: userData.email,
@@ -22,8 +22,8 @@ export const authService = {
       console.log('✅ [Auth Service] Registration successful');
       return data;
     } catch (error) {
-      console.error('❌ [Auth Service] Registration failed:', error. response?.data || error.message);
-      throw error. response?.data || { message: error.message };
+      console.error('❌ [Auth Service] Registration failed:', error.response?.data || error.message);
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -35,7 +35,7 @@ export const authService = {
   login: async (credentials) => {
     try {
       console.log('🔐 [Auth Service] Logging in user:', credentials.email);
-      
+
       const { data } = await clientAPI.post(API_ENDPOINTS.LOGIN, {
         email: credentials.email,
         password: credentials.password,
@@ -81,13 +81,13 @@ export const authService = {
   getCurrentUser: async () => {
     try {
       console.log('👤 [Auth Service] Fetching current user info');
-      
-      const { data } = await clientAPI.get(API_ENDPOINTS. PROFILE);
-      
+
+      const { data } = await clientAPI.get(API_ENDPOINTS.PROFILE);
+
       console.log('✅ [Auth Service] User info fetched:', data);
       return data;
     } catch (error) {
-      console.error('❌ [Auth Service] Failed to fetch user info:', error. response?.data || error.message);
+      console.error('❌ [Auth Service] Failed to fetch user info:', error.response?.data || error.message);
       throw error.response?.data || { message: error.message };
     }
   },
@@ -100,14 +100,14 @@ export const authService = {
   updateProfile: async (profileData) => {
     try {
       console.log('🔄 [Auth Service] Updating profile');
-      
+
       const { data } = await clientAPI.put(API_ENDPOINTS.PROFILE, profileData);
-      
-      console. log('✅ [Auth Service] Profile updated successfully');
+
+      console.log('✅ [Auth Service] Profile updated successfully');
       return data;
     } catch (error) {
       console.error('❌ [Auth Service] Failed to update profile:', error.response?.data || error.message);
-      throw error.response?. data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -119,17 +119,17 @@ export const authService = {
   changePassword: async (passwordData) => {
     try {
       console.log('🔒 [Auth Service] Changing password');
-      
+
       const { data } = await clientAPI.put(API_ENDPOINTS.CHANGE_PASSWORD, {
-        oldPassword: passwordData. oldPassword,
-        newPassword:  passwordData.newPassword,
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword,
       });
-      
+
       console.log('✅ [Auth Service] Password changed successfully');
       return data;
     } catch (error) {
       console.error('❌ [Auth Service] Failed to change password:', error.response?.data || error.message);
-      throw error. response?.data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -143,7 +143,7 @@ export const authService = {
   adminLogin: async (credentials) => {
     try {
       console.log('🔐 [Auth Service] Admin logging in:', credentials.email);
-      
+
       const { data } = await adminAPI.post(API_ENDPOINTS.LOGIN, {
         email: credentials.email,
         password: credentials.password,
@@ -182,7 +182,7 @@ export const authService = {
   /**
    * Đăng xuất admin
    */
-  adminLogout:  () => {
+  adminLogout: () => {
     console.log('👋 [Auth Service] Logging out admin');
     localStorage.removeItem('adminToken');
     localStorage.removeItem('admin');
@@ -195,11 +195,11 @@ export const authService = {
   getCurrentAdmin: async () => {
     try {
       console.log('👤 [Auth Service] Fetching current admin info');
-      
+
       const { data } = await adminAPI.get(API_ENDPOINTS.PROFILE);
 
       // Kiểm tra role phải là admin
-      if (data. role !== 'admin') {
+      if (data.role !== 'admin') {
         console.error('❌ [Auth Service] User is not an admin');
         throw new Error('Unauthorized');
       }
@@ -208,7 +208,7 @@ export const authService = {
       return data;
     } catch (error) {
       console.error('❌ [Auth Service] Failed to fetch admin info:', error.response?.data || error.message);
-      throw error.response?. data || { message: error.message };
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -222,10 +222,10 @@ export const authService = {
   forgotPassword: async (email) => {
     try {
       console.log('📧 [Auth Service] Sending password reset email to:', email);
-      
-      const { data } = await clientAPI. post(API_ENDPOINTS. FORGOT_PASSWORD, { email });
-      
-      console. log('✅ [Auth Service] Password reset email sent');
+
+      const { data } = await clientAPI.post(API_ENDPOINTS.FORGOT_PASSWORD, { email });
+
+      console.log('✅ [Auth Service] Password reset email sent');
       return data;
     } catch (error) {
       console.error('❌ [Auth Service] Failed to send reset email:', error.response?.data || error.message);
@@ -242,12 +242,10 @@ export const authService = {
   resetPassword: async (token, newPassword) => {
     try {
       console.log('🔒 [Auth Service] Resetting password with token');
-      
-      const { data } = await clientAPI.post(API_ENDPOINTS.RESET_PASSWORD, {
-        token,
-        newPassword,
+      const { data } = await clientAPI.post(`${API_ENDPOINTS.RESET_PASSWORD}/${token}`, {
+        password: newPassword,
       });
-      
+
       console.log('✅ [Auth Service] Password reset successful');
       return data;
     } catch (error) {
@@ -264,9 +262,9 @@ export const authService = {
   verifyResetToken: async (token) => {
     try {
       console.log('🔍 [Auth Service] Verifying reset token');
-      
+
       const { data } = await clientAPI.get(`/auth/verify-reset-token/${token}`);
-      
+
       console.log('✅ [Auth Service] Token is valid');
       return data;
     } catch (error) {

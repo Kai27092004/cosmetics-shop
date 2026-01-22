@@ -41,6 +41,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM('customer', 'admin'),
             allowNull: false,
             defaultValue: 'customer'
+        },
+        resetPasswordToken: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        resetPasswordExpires: {
+            type: DataTypes.DATE,
+            allowNull: true
         }
     }, {
         tableName: 'users', // SỬA LẠI: Dùng chữ thường để khớp với database

@@ -15,6 +15,8 @@ CREATE TABLE Users (
     fullName VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NULL,
+    resetPasswordToken VARCHAR(255) NULL,
+    resetPasswordExpires DATETIME NULL,
     googleId VARCHAR(255) NULL UNIQUE,
     avatar VARCHAR(500) NULL,
     phone VARCHAR(20) NULL,
