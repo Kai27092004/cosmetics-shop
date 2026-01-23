@@ -245,6 +245,39 @@ exports.updateUser = async (req, res) => {
     }
 };
 
+// 1. Chặn hoặc Mở khóa User (Toggle)
+exports.toggleBlockStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Tìm user theo ID
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ message: 'Người dùng không tồn tại' });
+        }
+
+        // Bảo vệ: Không cho phép chặn Admin
+        if (user.role === 'admin') {
+            return res.status(400).json({ message: 'Không thể chặn tài khoản Quản trị viên' });
+        }
+
+        // Đảo ngược trạng thái: true -> false, false -> true
+        user.isBlocked = !user.isBlocked;
+        await user.save();
+
+        const message = user.isBlocked ? 'Đã khóa tài khoản thành công' : 'Đã mở khóa tài khoản thành công';
+        
+        res.status(200).json({ 
+            message: message, 
+            isBlocked: user.isBlocked 
+        });
+
+    } catch (error) {
+        console.error("Lỗi toggleBlockStatus:", error);
+        res.status(500).json({ message: 'Lỗi server khi cập nhật trạng thái' });
+    }
+};
+
 // Chức năng: [ADMIN] Xóa người dùng
 exports.deleteUser = async (req, res) => {
     try {

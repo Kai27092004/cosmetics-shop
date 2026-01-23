@@ -52,6 +52,11 @@ exports.login = async (req, res) => {
         if (!user) {
             return res.status(404).send({ message: "Email không tồn tại." });
         }
+        if (user.isBlocked) {
+            return res.status(403).send({ 
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên." 
+            });
+        }
 
         // Kiểm tra nếu user đăng nhập bằng Google (không có password)
         if (!user.password) {
@@ -90,6 +95,11 @@ exports.googleCallback = async (req, res) => {
 
         if (!user) {
             return res.redirect(`${process.env.FRONTEND_URL}/login?error=authentication_failed`);
+        }
+
+        // ✅ Kiểm tra tài khoản có bị chặn không
+        if (user.isBlocked) {
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=account_blocked`);
         }
 
         // Tạo JWT token

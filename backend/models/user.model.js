@@ -49,6 +49,11 @@ module.exports = (sequelize, DataTypes) => {
         resetPasswordExpires: {
             type: DataTypes.DATE,
             allowNull: true
+        },
+        isBlocked: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     }, {
         tableName: 'users', // SỬA LẠI: Dùng chữ thường để khớp với database

@@ -139,6 +139,24 @@ export const userService = {
   },
 
   /**
+   * Chặn hoặc Mở khóa User (Admin only)
+   * Backend Route: PATCH /api/users/admin/:id/block
+   */
+  toggleBlockUser: async (userId) => {
+    try {
+      console.log('🔒 [User Service] Toggling block status for user:', userId);
+      
+      const { data } = await adminAPI.patch(`/users/admin/${userId}/block`);
+      
+      console.log('✅ [User Service] Block status updated');
+      return data;
+    } catch (error) {
+      console.error('❌ [User Service] Failed to toggle block status:', error.response?.data || error.message);
+      throw error.response?.data || { message: error.message };
+    }
+  },
+
+  /**
    * Xóa người dùng (Admin only)
    * @param {number} userId - User ID
    * @returns {Promise<object>}
