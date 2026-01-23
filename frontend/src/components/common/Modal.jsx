@@ -15,6 +15,7 @@ export default function Modal({
   children,
   size = 'md',
   showCloseButton = true,
+  noPadding = false, // Thêm prop mới để control padding
 }) {
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -68,8 +69,8 @@ export default function Modal({
           className={`relative bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform transition-all`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          {(title || showCloseButton) && (
+          {/* Header - chỉ hiển thị nếu có title hoặc showCloseButton */}
+          {(title || showCloseButton) && title !== '' && (
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               {title && <h3 className="text-xl font-bold text-gray-900">{title}</h3>}
               {showCloseButton && (
@@ -85,10 +86,14 @@ export default function Modal({
             </div>
           )}
 
-          {/* Body */}
-          <div className="p-6">
-            {children}
-          </div>
+          {/* Body - không thêm padding nếu noPadding = true hoặc title = "" */}
+          {noPadding || title === '' ? (
+            children
+          ) : (
+            <div className="p-6">
+              {children}
+            </div>
+          )}
         </div>
       </div>
     </div>

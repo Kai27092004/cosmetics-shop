@@ -9,6 +9,7 @@ import ProductRoutes from '../pages/admin/products';
 import OrderRoutes from '../pages/admin/orders';
 import CategoryManagement from '../pages/admin/categories';
 import UserManagement from '../pages/admin/users';
+import EmailRoutes from '../pages/admin/email';
 
 /**
  * Admin Routes - Routes cho admin
@@ -34,6 +35,7 @@ export default function AdminRoutes() {
         <Route path="orders/*" element={<OrderRoutes />} />
         <Route path="categories" element={<CategoryManagement />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="email/*" element={<EmailRoutes />} />
       </Route>
     </Routes>
   );
