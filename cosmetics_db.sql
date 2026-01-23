@@ -164,57 +164,57 @@ INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
 
 -- 3. Products (16 sản phẩm)
 INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
-(1, 'Kem Dưỡng Ẩm Vitamin E', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường. ', 150000.00, 50, '/upload/son-duong-am-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
-(2, 'Kem Dưỡng Trắng Ngọc Trai', 'Chiết xuất ngọc trai tự nhiên giúp làm sáng da, mờ thâm nám và đều màu da hiệu quả.', 320000.00, 30, '/upload/kem-ngoc-trai.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
-(3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-collagen.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
-(4, 'Gel Dưỡng Da Lô Hội', 'Dạng gel thẩm thấu nhanh, không gây bết dính, làm dịu da cháy nắng và cấp nước tức thì cho làn da. ', 120000.00, 100, '/upload/gel-lo-hoi.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
-(5, 'Sữa Rửa Mặt Trà Xanh', 'Làm sạch sâu lỗ chân lông, kiểm soát bã nhờn và ngăn ngừa mụn với tinh chất trà xanh kháng khuẩn.', 95000.00, 80, '/upload/srm-tra-xanh.jpg', 'SRM-001', '100ml', 'Trà xanh Nhật Bản', 2),
-(6, 'Sữa Rửa Mặt Dịu Nhẹ pH 5.5', 'Công thức cân bằng độ pH lý tưởng, phù hợp cho da nhạy cảm, làm sạch mà không gây khô căng. ', 180000.00, 60, '/upload/srm-diu-nhe.jpg', 'SRM-002', '150ml', 'Ceramide, Glycerin', 2),
-(7, 'Sữa Rửa Mặt Than Tre', 'Hút sạch độc tố, bụi bẩn và dầu thừa, giúp da sáng khỏe và lỗ chân lông thông thoáng.', 110000.00, 45, '/upload/srm-than-tre.jpg', 'SRM-003', '100g', 'Than tre hoạt tính', 2),
-(8, 'Gel Rửa Mặt Tẩy Tế Bào Chết', 'Chứa các hạt massage nhỏ giúp loại bỏ tế bào chết nhẹ nhàng trong quá trình rửa mặt hàng ngày.', 135000.00, 50, '/upload/srm-tay-te-bao. jpg', 'SRM-004', '120ml', 'Hạt Jojoba', 2),
-(9, 'Dầu Gội Bưởi Kích Thích Mọc Tóc', 'Tinh dầu vỏ bưởi đậm đặc giúp ngăn rụng tóc, nuôi dưỡng nang tóc và kích thích mọc tóc con.', 250000.00, 40, '/upload/dau-goi-buoi.jpg', 'DAU-GOI-001', '300ml', 'Tinh dầu bưởi', 3),
-(10, 'Dầu Gội Thảo Dược Bồ Kết', 'Nấu từ bồ kết truyền thống kết hợp hương nhu, giúp tóc đen mượt, sạch gàu và giảm ngứa da đầu.', 180000.00, 55, '/upload/dau-goi-bo-ket.jpg', 'DAU-GOI-002', '500ml', 'Bồ kết, Hương nhu', 3),
-(11, 'Dầu Gội Phục Hồi Keratin', 'Bổ sung Keratin giúp tái tạo cấu trúc tóc, phục hồi mái tóc hư tổn do uốn, duỗi, nhuộm. ', 350000.00, 30, '/upload/dau-goi-keratin.jpg', 'DAU-GOI-003', '450ml', 'Keratin, Dầu Argan', 3),
-(12, 'Dầu Gội Bạc Hà Mát Lạnh', 'Mang lại cảm giác mát lạnh sảng khoái, đánh bay gàu và bụi bẩn, giúp da đầu thư giãn.', 120000.00, 70, '/upload/dau-goi-bac-ha. jpg', 'DAU-GOI-004', '650ml', 'Tinh chất bạc hà', 3),
-(13, 'Sữa Tắm Dê Trắng Da', 'Tinh chất sữa dê giàu dưỡng chất giúp nuôi dưỡng làn da trắng sáng và mềm mịn như da em bé.', 150000.00, 60, '/upload/sua-tam-de.jpg', 'SUA-TAM-001', '1000ml', 'Sữa dê nguyên chất', 4),
-(14, 'Sữa Tắm Hương Nước Hoa', 'Lưu hương thơm nước hoa Pháp quyến rũ, sang trọng suốt nhiều giờ liền, tạo cảm giác tự tin.', 280000.00, 35, '/upload/sua-tam-nuoc-hoa.jpg', 'SUA-TAM-002', '500ml', 'Tinh dầu nước hoa', 4),
-(15, 'Sữa Tắm Hạt Mơ Tẩy Da Chết', 'Kết hợp các hạt massage từ hạt mơ giúp loại bỏ lớp sừng già cỗi, trả lại làn da láng mịn.', 160000.00, 40, '/upload/sua-tam-hat-mo.jpg', 'SUA-TAM-003', '400ml', 'Hạt mơ, Vitamin C', 4),
-(16, 'Sữa Tắm Thảo Mộc Gừng Nghệ', 'Giữ ấm cơ thể, lưu thông khí huyết và kháng khuẩn tốt cho da, đặc biệt phù hợp khi trời lạnh.', 190000.00, 25, '/upload/sua-tam-gung.jpg', 'SUA-TAM-004', '300ml', 'Gừng, Nghệ', 4);
+(1, 'Kem Dưỡng Goodal Làm Sáng Da', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường. ', 150000.00, 50, '/upload/kem-duong-da-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
+(2, 'Kem Dưỡng Ẩm', 'Kem Dưỡng Ẩm, Làm Dịu Da Beyond Angel Aqua Moisture Cream 150ml.', 320000.00, 30, '/upload/kem-duong-am-2.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
+(3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-duong-tre-hoa-da-3.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
+(4, 'Gel Dưỡng Mắt Mờ Thâm', 'Kem Dưỡng Mắt Mờ Thâm, Sáng Da CNP Propolis Essential Eye Cream 50ml', 120000.00, 100, '/upload/kem-duong-mat-mo-tham-4.jpg', 'KEM-DUONG-004', '300ml', 'Lô hội tự nhiên', 1),
+(5, 'Sữa Rửa Cerave', 'Làm sạch sâu lỗ chân lông, kiểm soát bã nhờn và ngăn ngừa mụn với tinh chất trà xanh kháng khuẩn.', 95000.00, 80, '/upload/sua-rua-mat-1.jpg', 'SRM-001', '100ml', 'Trà xanh Nhật Bản', 2),
+(6, 'Sữa Rửa Mặt Dịu Nhẹ pH 5.5', 'Công thức cân bằng độ pH lý tưởng, phù hợp cho da nhạy cảm, làm sạch mà không gây khô căng. ', 180000.00, 60, '/upload/sua-rua-mat-2.jpg', 'SRM-002', '150ml', 'Ceramide, Glycerin', 2),
+(7, 'Sữa Rửa Mặt Than Tre', 'Hút sạch độc tố, bụi bẩn và dầu thừa, giúp da sáng khỏe và lỗ chân lông thông thoáng.', 110000.00, 45, '/upload/sua-rua-mat-3.jpg', 'SRM-003', '100g', 'Than tre hoạt tính', 2),
+(8, 'Gel Rửa Mặt Tẩy Tế Bào Chết', 'Chứa các hạt massage nhỏ giúp loại bỏ tế bào chết nhẹ nhàng trong quá trình rửa mặt hàng ngày.', 135000.00, 50, '/upload/sua-rua-mat-4.jpg', 'SRM-004', '120ml', 'Hạt Jojoba', 2),
+(9, 'Dầu Gội Bưởi Kích Thích Mọc Tóc', 'Tinh dầu vỏ bưởi đậm đặc giúp ngăn rụng tóc, nuôi dưỡng nang tóc và kích thích mọc tóc con.', 250000.00, 40, '/upload/dau-goi-1.jpg', 'DAU-GOI-001', '300ml', 'Tinh dầu bưởi', 3),
+(10, 'Dầu Gội Thảo Dược Bồ Kết', 'Nấu từ bồ kết truyền thống kết hợp hương nhu, giúp tóc đen mượt, sạch gàu và giảm ngứa da đầu.', 180000.00, 55, '/upload/dau-goi-2.jpg', 'DAU-GOI-002', '500ml', 'Bồ kết, Hương nhu', 3),
+(11, 'Dầu Gội Phục Hồi Keratin', 'Bổ sung Keratin giúp tái tạo cấu trúc tóc, phục hồi mái tóc hư tổn do uốn, duỗi, nhuộm. ', 350000.00, 30, '/upload/dau-goi-3.jpg', 'DAU-GOI-003', '450ml', 'Keratin, Dầu Argan', 3),
+(12, 'Dầu Gội Bạc Hà Mát Lạnh', 'Mang lại cảm giác mát lạnh sảng khoái, đánh bay gàu và bụi bẩn, giúp da đầu thư giãn.', 120000.00, 70, '/upload/dau-goi-4.jpg', 'DAU-GOI-004', '650ml', 'Tinh chất bạc hà', 3),
+(13, 'Sữa Tắm Lifebuoy', 'Sữa Tắm Dưỡng Da Lifebuoy Gel.', 150000.00, 60, '/upload/sua-tam-1.jpg', 'SUA-TAM-001', '1000ml', 'Sữa dê nguyên chất', 4),
+(14, 'Sữa Tắm Hương Nước Hoa', 'Sữa Tắm 92% Hữu Cơ Le Petit Marseillais 650ml.', 280000.00, 35, '/upload/sua-tam-2.jpg', 'SUA-TAM-002', '500ml', 'Tinh dầu nước hoa', 4),
+(15, 'Sữa Tắm Hương Nước Hoa', 'Sữa Tắm Nước Hoa Mine Perfumed Shower Gel 470ML.', 160000.00, 40, '/upload/sua-tam-3.jpg', 'SUA-TAM-003', '400ml', 'Hạt mơ, Vitamin C', 4),
+(16, 'Sữa Tắm M.O.I', '(Phiên bản giới hạn) Sữa Tắm M.O.I Hương Nước Hoa Limited Edition Destiny Body Wash 250ml', 190000.00, 25, '/upload/sua-tam-4.jpg', 'SUA-TAM-004', '300ml', 'Gừng, Nghệ', 4);
 
 -- 4. ProductImages (5 ảnh phụ cho mỗi sản phẩm)
 INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 1
-(1, '/upload/son-duong-am-1.jpg'), (1, '/upload/son-duong-am-1-2.jpg'), (1, '/upload/son-duong-am-1-3.jpg'), (1, '/son-duong-am-1-4.jpg'), (1, '/upload/son-duong-am-1-5.jpg'),
+(1, '/upload/kem-duong-da-1-1.jpg'), (1, '/upload/kem-duong-da-1-2.jpg'), (1, '/upload/kem-duong-da-1-3.jpg'), (1, '/upload/kem-duong-da-1-4.jpg'), (1, '/upload/kem-duong-da-1-5.jpg'),
 -- Sản phẩm 2
-(2, '/upload/kem-ngoc-trai-detail1.jpg'), (2, '/upload/kem-ngoc-trai-detail2.jpg'), (2, '/upload/kem-ngoc-trai-detail3.jpg'), (2, '/upload/kem-ngoc-trai-usage.jpg'), (2, '/upload/kem-ngoc-trai-texture.jpg'),
+(2, '/upload/kem-duong-am-2-1.jpg'), (2, '/upload/kem-duong-am-2-1.jpg'), (2, '/upload/kem-duong-am-2-2.jpg'), (2, '/upload/kem-duong-am-2-3.jpg'), (2, '/upload/kem-duong-am-2.jpg'),
 -- Sản phẩm 3
-(3, '/upload/kem-collagen-detail1.jpg'), (3, '/upload/kem-collagen-detail2.jpg'), (3, '/upload/kem-collagen-detail3.jpg'), (3, '/upload/kem-collagen-usage.jpg'), (3, '/upload/kem-collagen-texture.jpg'),
+(3, '/upload/kem-duong-tre-hoa-da-3-1.jpg'), (3, '/upload/kem-duong-tre-hoa-da-3-1.jpg'), (3, '/upload/kem-duong-tre-hoa-da-3-2.jpg'), (3, '/upload/kem-duong-tre-hoa-da-3.jpg'), (3, '/upload/kem-duong-tre-hoa-da-3-1.jpg'),
 -- Sản phẩm 4
-(4, '/upload/gel-lo-hoi-detail1.jpg'), (4, '/upload/gel-lo-hoi-detail2.jpg'), (4, '/upload/gel-lo-hoi-detail3.jpg'), (4, '/upload/gel-lo-hoi-usage.jpg'), (4, '/upload/gel-lo-hoi-texture.jpg'),
+(4, '/upload/kem-duong-mat-mo-tham-4-1.jpg'), (4, '/upload/kem-duong-mat-mo-tham-4-2.jpg'), (4, '/upload/kem-duong-mat-mo-tham-4-3.jpg'), (4, '/upload/kem-duong-mat-mo-tham-4-4.jpg'), (4, '/upload/kem-duong-mat-mo-tham-4.jpg'),
 -- Sản phẩm 5
-(5, '/upload/srm-tra-xanh-detail1.jpg'), (5, '/upload/srm-tra-xanh-detail2.jpg'), (5, '/upload/srm-tra-xanh-detail3.jpg'), (5, '/upload/srm-tra-xanh-usage.jpg'), (5, '/upload/srm-tra-xanh-texture.jpg'),
+(5, '/upload/sua-rua-mat-1-1.jpg'), (5, '/upload/sua-rua-mat-1-2.jpg'), (5, '/upload/sua-rua-mat-1-3.jpg'), (5, '/upload/sua-rua-mat-1-4.jpg'), (5, '/upload/sua-rua-mat-1-5.jpg'),
 -- Sản phẩm 6
-(6, '/upload/srm-diu-nhe-detail1.jpg'), (6, '/upload/srm-diu-nhe-detail2.jpg'), (6, '/upload/srm-diu-nhe-detail3.jpg'), (6, '/upload/srm-diu-nhe-usage.jpg'), (6, '/upload/srm-diu-nhe-texture.jpg'),
+(6, '/upload/sua-rua-mat-2-1.jpg'), (6, '/upload/sua-rua-mat-2-2.jpg'), (6, '/upload/sua-rua-mat-2-3.jpg'), (6, '/upload/sua-rua-mat-2-4.jpg'), (6, '/upload/sua-rua-mat-2-5.jpg'),
 -- Sản phẩm 7
-(7, '/upload/srm-than-tre-detail1.jpg'), (7, '/upload/srm-than-tre-detail2.jpg'), (7, '/upload/srm-than-tre-detail3.jpg'), (7, '/upload/srm-than-tre-usage.jpg'), (7, '/upload/srm-than-tre-texture.jpg'),
+(7, '/upload/sua-rua-mat-3-1.jpg'), (7, '/upload/sua-rua-mat-3-2.jpg'), (7, '/upload/sua-rua-mat-3-3.jpg'), (7, '/upload/sua-rua-mat-3-4.jpg'), (7, '/upload/sua-rua-mat-3.jpg'),
 -- Sản phẩm 8
-(8, '/upload/srm-tay-te-bao-detail1.jpg'), (8, '/upload/srm-tay-te-bao-detail2.jpg'), (8, '/upload/srm-tay-te-bao-detail3.jpg'), (8, '/upload/srm-tay-te-bao-usage.jpg'), (8, '/upload/srm-tay-te-bao-texture.jpg'),
+(8, '/upload/sua-rua-mat-4-1.jpg'), (8, '/upload/sua-rua-mat-4-2.jpg'), (8, '/upload/sua-rua-mat-4-3.jpg'), (8, '/upload/sua-rua-mat-4-4.jpg'), (8, '/upload/sua-rua-mat-4.jpg'),
 -- Sản phẩm 9
-(9, '/upload/dau-goi-buoi-detail1.jpg'), (9, '/upload/dau-goi-buoi-detail2.jpg'), (9, '/upload/dau-goi-buoi-detail3.jpg'), (9, '/upload/dau-goi-buoi-usage.jpg'), (9, '/upload/dau-goi-buoi-texture.jpg'),
+(9, '/upload/dau-goi-1-1.jpg'), (9, '/upload/dau-goi-1-2.jpg'), (9, '/upload/dau-goi-1-3.jpg'), (9, '/upload/dau-goi-1.jpg'), (9, '/upload/dau-goi-1-3.jpg'),
 -- Sản phẩm 10
-(10, '/upload/dau-goi-bo-ket-detail1.jpg'), (10, '/upload/dau-goi-bo-ket-detail2.jpg'), (10, '/upload/dau-goi-bo-ket-detail3.jpg'), (10, '/upload/dau-goi-bo-ket-usage. jpg'), (10, '/upload/dau-goi-bo-ket-texture.jpg'),
+(10, '/upload/dau-goi-2-1.jpg'), (10, '/upload/dau-goi-2-2.jpg'), (10, '/upload/dau-goi-2-3.jpg'), (10, '/upload/dau-goi-2-4.jpg'), (10, '/upload/dau-goi-2.jpg'),
 -- Sản phẩm 11
-(11, '/upload/dau-goi-keratin-detail1.jpg'), (11, '/upload/dau-goi-keratin-detail2.jpg'), (11, '/upload/dau-goi-keratin-detail3.jpg'), (11, '/upload/dau-goi-keratin-usage. jpg'), (11, '/upload/dau-goi-keratin-texture.jpg'),
+(11, '/upload/dau-goi-3-1.jpg'), (11, '/upload/dau-goi-3-2.jpg'), (11, '/upload/dau-goi-3-3.jpg'), (11, '/upload/dau-goi-3-4.jpg'), (11, '/upload/dau-goi-3-5.jpg'),
 -- Sản phẩm 12
-(12, '/upload/dau-goi-bac-ha-detail1.jpg'), (12, '/upload/dau-goi-bac-ha-detail2.jpg'), (12, '/upload/dau-goi-bac-ha-detail3.jpg'), (12, '/upload/dau-goi-bac-ha-usage.jpg'), (12, '/upload/dau-goi-bac-ha-texture.jpg'),
+(12, '/upload/dau-goi-4-1.jpg'), (12, '/upload/dau-goi-4-2.jpg'), (12, '/upload/dau-goi-4-3.jpg'), (12, '/upload/dau-goi-4-4.jpg'), (12, '/upload/dau-goi-4-5.jpg'),
 -- Sản phẩm 13
-(13, '/upload/sua-tam-de-detail1.jpg'), (13, '/upload/sua-tam-de-detail2.jpg'), (13, '/upload/sua-tam-de-detail3.jpg'), (13, '/upload/sua-tam-de-usage.jpg'), (13, '/upload/sua-tam-de-texture.jpg'),
+(13, '/upload/sua-tam-1-1.jpg'), (13, '/upload/sua-tam-1-2.jpg'), (13, '/upload/sua-tam-1-3.jpg'), (13, '/upload/sua-tam-1-4.jpg'), (13, '/upload/sua-tam-1-5.jpg'),
 -- Sản phẩm 14
-(14, '/upload/sua-tam-nuoc-hoa-detail1.jpg'), (14, '/upload/sua-tam-nuoc-hoa-detail2.jpg'), (14, '/upload/sua-tam-nuoc-hoa-detail3.jpg'), (14, '/upload/sua-tam-nuoc-hoa-usage.jpg'), (14, '/upload/sua-tam-nuoc-hoa-texture.jpg'),
+(14, '/upload/sua-tam-2-1.jpg'), (14, '/upload/sua-tam-2-2.jpg'), (14, '/upload/sua-tam-2-3.jpg'), (14, '/upload/sua-tam-2-4.jpg'), (14, '/upload/sua-tam-2-5.jpg'),
 -- Sản phẩm 15
-(15, '/upload/sua-tam-hat-mo-detail1.jpg'), (15, '/upload/sua-tam-hat-mo-detail2.jpg'), (15, '/upload/sua-tam-hat-mo-detail3.jpg'), (15, '/upload/sua-tam-hat-mo-usage.jpg'), (15, '/upload/sua-tam-hat-mo-texture.jpg'),
+(15, '/upload/sua-tam-3-1.jpg'), (15, '/upload/sua-tam-3-2.jpg'), (15, '/upload/sua-tam-3-3.jpg'), (15, '/upload/sua-tam-3-4.jpg'), (15, '/upload/sua-tam-3-5.jpg'),
 -- Sản phẩm 16
-(16, '/upload/sua-tam-gung-detail1.jpg'), (16, '/upload/sua-tam-gung-detail2.jpg'), (16, '/upload/sua-tam-gung-detail3.jpg'), (16, '/upload/sua-tam-gung-usage.jpg'), (16, '/upload/sua-tam-gung-texture.jpg');
+(16, '/upload/sua-tam-4-1.jpg'), (16, '/upload/sua-tam-4-2.jpg'), (16, '/upload/sua-tam-4-3.jpg'), (16, '/upload/sua-tam-4-4.jpg'), (16, '/upload/sua-tam-4-1.jpg');
 
 -- 5. EmailTemplates
 INSERT INTO EmailTemplates (name, subject, content, description) VALUES

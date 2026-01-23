@@ -7,8 +7,8 @@ import orderService from '../../services/orderService';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import showToast from '../../utils/toast';
-import Loading from '../../components/common/Loading';
 import { getImageUrl } from '../../utils/helpers';
+import { getCities, getWards } from '../../utils/vietnamAddress';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -21,10 +21,13 @@ export default function Checkout() {
     phone: '',
     address: '',
     city: '',
-    district: '',
     ward: '',
     notes: '',
   });
+
+  // State cho dropdown địa chỉ (sau cải cách 12/6/2025: 34 tỉnh, bỏ cấp huyện)
+  const [cities] = useState(getCities());
+  const [wards, setWards] = useState([]);
 
   // ✅ THÊM STATE CHO PAYMENT METHOD
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -50,6 +53,22 @@ export default function Checkout() {
     }
   };
 
+  // Xử lý khi chọn tỉnh/thành phố
+  const handleCityChange = (e) => {
+    const city = e.target.value;
+    setFormData(prev => ({ ...prev, city, ward: '' }));
+    setWards(getWards(city));
+    if (errors.city) {
+      setErrors(prev => ({ ...prev, city: '' }));
+    }
+  };
+
+  // Xử lý khi chọn phường/xã
+  const handleWardChange = (e) => {
+    const ward = e.target.value;
+    setFormData(prev => ({ ...prev, ward }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -60,8 +79,7 @@ export default function Checkout() {
       newErrors.phone = 'Số điện thoại không hợp lệ';
     }
     if (!formData.address) newErrors.address = 'Vui lòng nhập địa chỉ';
-    if (!formData.city) newErrors.city = 'Vui lòng nhập tỉnh/thành phố';
-    if (!formData. district) newErrors.district = 'Vui lòng nhập quận/huyện';
+    if (!formData.city) newErrors.city = 'Vui lòng chọn tỉnh/thành phố';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -80,9 +98,8 @@ export default function Checkout() {
 
     try {
       const fullAddress = [
-        formData. address,
+        formData.address,
         formData.ward,
-        formData.district,
         formData.city,
       ].filter(Boolean).join(', ');
 
@@ -206,32 +223,58 @@ export default function Checkout() {
                     placeholder="Số nhà, tên đường"
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Input
-                      label="Phường/Xã"
-                      name="ward"
-                      value={formData.ward}
-                      onChange={handleChange}
-                      disabled={loading}
-                    />
-                    <Input
-                      label="Quận/Huyện"
-                      name="district"
-                      value={formData.district}
-                      onChange={handleChange}
-                      error={errors.district}
-                      required
-                      disabled={loading}
-                    />
-                    <Input
-                      label="Tỉnh/Thành phố"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      error={errors.city}
-                      required
-                      disabled={loading}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Tỉnh/Thành phố */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tỉnh/Thành phố <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        name="city"
+                        value={formData.city}
+                        onChange={handleCityChange}
+                        disabled={loading}
+                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          errors.city ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                      >
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                        {cities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.city && (
+                        <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        💡 Cải cách hành chính 12/6/2025: 34 tỉnh/thành, đã bỏ cấp huyện
+                      </p>
+                    </div>
+
+                    {/* Phường/Xã */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phường/Xã
+                      </label>
+                      <select
+                        name="ward"
+                        value={formData.ward}
+                        onChange={handleWardChange}
+                        disabled={loading || !formData.city}
+                        className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                          !formData.city ? 'bg-gray-100 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        <option value="">-- Chọn Phường/Xã --</option>
+                        {wards.map((ward) => (
+                          <option key={ward} value={ward}>
+                            {ward}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>

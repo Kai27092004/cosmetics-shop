@@ -9,91 +9,91 @@ import '../../styles/custom.css';
 const MOCK_PRODUCTS = [
   {
     id: 1,
-    name: 'Son Dưỡng Ẩm Cao Cấp #1',
+    name: 'Son Dưỡng Goodal',
     price: 299000,
     originalPrice: 399000,
-    image: '/son-duong-am-1.jpg',
+    image: '/kem-duong-da-1.jpg',
     rating: 4.8,
     sold: 1250,
     discount: 25,
-    category: 'Son Dưỡng'
+    category: 'Kem dưỡng da'
   },
   {
     id: 2,
-    name: 'Son Dưỡng Ẩm Thiên Nhiên #2',
+    name: 'Son Dưỡng Ẩm',
     price: 249000,
     originalPrice: 329000,
-    image: '/son-duong-am-2.jpg',
+    image: '/kem-duong-am-2.jpg',
     rating: 4.9,
     sold: 2100,
     discount: 24,
-    category: 'Son Dưỡng'
+    category: 'Kem dưỡng da'
   },
   {
-    id: 3,
-    name: 'Son Dưỡng Ẩm Vitamin E #3',
+    id: 13,
+    name: 'Sửa Tắm Lifebuoy',
     price: 279000,
     originalPrice: 359000,
-    image: '/son-duong-am-3.jpg',
+    image: '/sua-tam-1.jpg',
     rating: 4.7,
     sold: 890,
     discount: 22,
-    category: 'Son Dưỡng'
+    category: 'Sữa tắm'
   },
   {
-    id: 4,
-    name: 'Son Dưỡng Ẩm Hoa Hồng #4',
+    id: 11,
+    name: 'Dầu Gội Gừng',
     price: 319000,
     originalPrice: 429000,
-    image: '/son-duong-am-4.jpg',
+    image: '/dau-goi-3-4.jpg',
     rating: 4.9,
     sold: 1580,
     discount: 26,
-    category: 'Son Dưỡng'
+    category: 'Dầu Gội'
   },
   {
-    id: 5,
-    name: 'Son Dưỡng Ẩm Luxury #5',
+    id: 10,
+    name: 'Dầu Gội Bưởi',
     price: 349000,
     originalPrice: 469000,
-    image: '/son-duong-am-5.jpg',
+    image: '/dau-goi-2.jpg',
     rating: 5.0,
     sold: 3200,
     discount: 26,
-    category: 'Son Dưỡng'
+    category: 'Dầu Gội'
   },
   {
-    id: 6,
-    name: 'Son Dưỡng Ẩm Organic #1',
+    id: 14,
+    name: 'Sữa Tắm Hữu Cơ',
     price: 289000,
     originalPrice: 379000,
-    image: '/son-duong-am-1-1.jpg',
+    image: '/sua-tam-2.jpg',
     rating: 4.6,
     sold: 750,
     discount: 24,
-    category: 'Son Dưỡng'
+    category: 'Sữa Tắm'
   },
   {
-    id: 7,
-    name: 'Son Dưỡng Ẩm Premium #2',
+    id: 15,
+    name: 'Sữa Tắm Nước Hoa',
     price: 329000,
     originalPrice: 439000,
-    image: '/son-duong-am-2-1.jpg',
+    image: '/sua-tam-3.jpg',
     rating: 4.8,
     sold: 1420,
     discount: 25,
-    category: 'Son Dưỡng'
+    category: 'Sữa Tắm'
   },
   {
-    id: 8,
-    name: 'Son Dưỡng Ẩm Deluxe #3',
+    id: 16,
+    name: 'Sữa Tắm M.O.I',
     price: 359000,
     originalPrice: 479000,
-    image: '/son-duong-am-3-1.jpg',
+    image: '/sua-tam-4.jpg',
     rating: 4.9,
     sold: 2890,
     discount: 25,
-    category: 'Son Dưỡng'
+    category: 'Sữa Tắm'
   }
 ];
 

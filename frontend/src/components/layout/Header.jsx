@@ -28,8 +28,8 @@ export default function Header() {
             {/* LEFT: Logo + Brand Name */}
             <div className="flex items-center flex-shrink-0">
               <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                  <span className="text-white font-bold text-xl">💄</span>
+                <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+                  <img src="/kem-duong-da-1-1.jpg" alt="Cosmetics Shop Logo" className="w-full h-full object-cover" />
                 </div>
                 <span className="text-xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                   Cosmetics Shop
@@ -162,8 +162,8 @@ export default function Header() {
           {/* Row 1: Logo + Brand Name */}
           <div className="flex items-center justify-center h-14 border-b border-pink-200">
             <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-xl">💄</span>
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md">
+                <img src="/logo.jpg" alt="Cosmetics Shop Logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
                 Cosmetics Shop
