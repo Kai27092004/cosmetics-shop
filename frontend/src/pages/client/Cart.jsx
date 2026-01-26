@@ -204,10 +204,11 @@ export default function Cart() {
                   className="flex-shrink-0 w-28 h-28 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl overflow-hidden group"
                 >
                   <img
-                    src={getImageUrl(item.imageUrl)}
+                    src={getImageUrl(item.imageUrl || item.image || '')}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
+                      console.error('Image load error for item:', item.id, 'imageUrl:', item.imageUrl);
                       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" dy="5" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                     }}
                   />

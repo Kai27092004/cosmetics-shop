@@ -5,22 +5,27 @@
  */
 export const getImageUrl = (imageUrl) => {
   if (!imageUrl) {
+    console.warn('[getImageUrl] No image URL provided');
     // Placeholder image nếu không có ảnh - sử dụng data URI để tránh lỗi DNS
     return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect fill="%23f0f0f0" width="300" height="300"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="18" dy="10" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
   }
 
-  // Nếu đã là URL đầy đủ (http: // hoặc https://)
+  // Nếu đã là URL đầy đủ (http:// hoặc https://)
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    console.log('[getImageUrl] Full URL detected:', imageUrl);
     return imageUrl;
   }
 
   // Nếu là đường dẫn tương đối, ghép với backend URL
-  const BACKEND_URL = import.meta.env.VITE_API_URL?. replace('/api', '') || 'http://localhost:8080';
+  const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8080';
   
   // Xử lý đường dẫn
   const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
   
-  return `${BACKEND_URL}${cleanPath}`;
+  const fullUrl = `${BACKEND_URL}${cleanPath}`;
+  console.log('[getImageUrl] Generated URL:', fullUrl, 'from path:', imageUrl);
+  
+  return fullUrl;
 };
 
 /**

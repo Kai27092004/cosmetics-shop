@@ -398,9 +398,13 @@ export default function Checkout() {
                   {items.map((item) => (
                     <div key={item. id} className="flex gap-4">
                       <img
-                        src={getImageUrl(item.imageUrl)}
+                        src={getImageUrl(item.imageUrl || item.image || '')}
                         alt={item.name}
                         className="w-16 h-16 object-cover rounded"
+                        onError={(e) => {
+                          console.error('Image load error for item:', item.id, 'imageUrl:', item.imageUrl);
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" dy="5" font-weight="400" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        }}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>

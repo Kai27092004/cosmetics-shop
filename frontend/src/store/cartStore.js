@@ -18,6 +18,12 @@ export const useCartStore = create(
         const items = get().items;
         const existingItem = items.find((item) => item.id === product.id);
 
+        // ✅ Ensure imageUrl is preserved
+        const productWithImage = {
+          ...product,
+          imageUrl: product.imageUrl || product.image || '',
+        };
+
         if (existingItem) {
           // Nếu sản phẩm đã có trong giỏ → Tăng số lượng
           console.log(`🛒 [Cart] Updated quantity for product #${product.id}: `, existingItem.quantity, '→', existingItem.quantity + quantity);
@@ -25,16 +31,16 @@ export const useCartStore = create(
           set({
             items: items.map((item) =>
               item.id === product.id
-                ? { ...item, quantity: item.quantity + quantity }
+                ? { ...item, quantity: item.quantity + quantity, imageUrl: productWithImage.imageUrl }
                 :  item
             ),
           });
         } else {
           // Nếu chưa có → Thêm mới
-          console.log(`🛒 [Cart] Added new product #${product.id} with quantity: `, quantity);
+          console.log(`🛒 [Cart] Added new product #${product.id} with quantity: `, quantity, 'imageUrl:', productWithImage.imageUrl);
           
           set({
-            items: [...items, { ...product, quantity }],
+            items: [...items, { ...productWithImage, quantity }],
           });
         }
       },
