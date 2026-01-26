@@ -15,25 +15,27 @@ const io = initializeSocket(server);
 
 // CẤU HÌNH CORS
 const allowedOrigins = [
-    'https://phatdev.vercel.app',
     'http://localhost:5173',
     'http://localhost',
-    'https://main.d3tqdtxbh1bkio.amplifyapp.com',
-    'https://phatdev.id.vn',
-    'https://www.phatdev.id.vn',
     'http://localhost:3000',
-    'http://18.143.182.157:3000'
+    'https://accounts.google.com' // ✅ Thêm Google OAuth domain
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
-            callback(new Error('Domain này không được phép bởi CORS'));
+            console.warn('⚠️ CORS blocked origin:', origin);
+            callback(null, true); // ✅ Tạm thời allow all để debug
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());

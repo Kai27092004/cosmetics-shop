@@ -12,14 +12,16 @@ router.post('/reset-password/:token', controller.resetPassword);
 // Google OAuth Routes
 router.get('/google',
     passport.authenticate('google', {
-        scope: ['profile', 'email']
+        scope: ['profile', 'email'],
+        accessType: 'offline',
+        prompt: 'consent'
     })
 );
 
 router.get('/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/api/auth/google/failure',
-        session: false
+        session: true // ✅ Bật session để passport lưu user
     }),
     controller.googleCallback
 );

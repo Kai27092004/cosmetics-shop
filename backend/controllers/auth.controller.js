@@ -91,25 +91,34 @@ exports.login = async (req, res) => {
 // Google OAuth Success Callback
 exports.googleCallback = async (req, res) => {
     try {
+        console.log('🔵 Google callback triggered');
+        console.log('🔵 User from passport:', req.user);
+        
         const user = req.user;
 
         if (!user) {
+            console.error('❌ No user found in request');
             return res.redirect(`${process.env.FRONTEND_URL}/login?error=authentication_failed`);
         }
 
         // ✅ Kiểm tra tài khoản có bị chặn không
         if (user.isBlocked) {
+            console.error('❌ User is blocked:', user.email);
             return res.redirect(`${process.env.FRONTEND_URL}/login?error=account_blocked`);
         }
 
         // Tạo JWT token
         const token = generateToken(user);
+        console.log('✅ JWT token generated');
 
         // Chuyển hướng về frontend với token
-        res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&userId=${user.id}&name=${encodeURIComponent(user.fullName)}&email=${encodeURIComponent(user.email)}&role=${user.role}&avatar=${encodeURIComponent(user.avatar || '')}`);
+        const redirectUrl = `${process.env.FRONTEND_URL}/auth/google/callback?token=${token}&userId=${user.id}&name=${encodeURIComponent(user.fullName)}&email=${encodeURIComponent(user.email)}&role=${user.role}&avatar=${encodeURIComponent(user.avatar || '')}`;
+        
+        console.log('✅ Redirecting to:', redirectUrl);
+        res.redirect(redirectUrl);
 
     } catch (error) {
-        console.error('Google callback error:', error);
+        console.error('❌ Google callback error:', error);
         res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
     }
 };

@@ -9,8 +9,8 @@ USE cosmetics_db;
 -- BƯỚC 1: TẠO CẤU TRÚC BẢNG (SCHEMA)
 -- =====================================================================
 
--- 1. Bảng Users
-CREATE TABLE Users (
+-- 1. Bảng users
+CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fullName VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -27,8 +27,8 @@ CREATE TABLE Users (
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 2. Bảng Categories
-CREATE TABLE Categories (
+-- 2. Bảng categories
+CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT NULL,
@@ -36,8 +36,8 @@ CREATE TABLE Categories (
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 3. Bảng Products
-CREATE TABLE Products (
+-- 3. Bảng products
+CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -50,22 +50,22 @@ CREATE TABLE Products (
     categoryId INT NULL,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (categoryId) REFERENCES Categories(id) ON DELETE SET NULL
+    FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 4. Bảng ProductImages
-CREATE TABLE ProductImages (
+-- 4. Bảng productimages
+CREATE TABLE productimages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     productId INT NOT NULL,
     imageUrl VARCHAR(255) NOT NULL,
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (productId) REFERENCES Products(id) ON DELETE CASCADE
+    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 5. Bảng Orders
+-- 5. Bảng orders
 -- ✅ THÊM MỚI:  paymentMethod và paymentStatus
-CREATE TABLE Orders (
+CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId INT NOT NULL,
     totalAmount DECIMAL(10, 2) NOT NULL,
@@ -86,22 +86,22 @@ CREATE TABLE Orders (
     
     createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 6. Bảng OrderItems
-CREATE TABLE OrderItems (
+-- 6. Bảng orderitems
+CREATE TABLE orderitems (
     id INT AUTO_INCREMENT PRIMARY KEY,
     orderId INT NOT NULL,
     productId INT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
-    FOREIGN KEY (orderId) REFERENCES Orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (productId) REFERENCES Products(id) ON DELETE SET NULL
+    FOREIGN KEY (orderId) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
--- 7. Bảng EmailTemplates
-CREATE TABLE IF NOT EXISTS EmailTemplates (
+-- 7. Bảng emailtemplates
+CREATE TABLE IF NOT EXISTS emailtemplates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE, 
     subject VARCHAR(500) NOT NULL, 
@@ -111,8 +111,8 @@ CREATE TABLE IF NOT EXISTS EmailTemplates (
     updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- 8. Bảng EmailLogs
-CREATE TABLE IF NOT EXISTS EmailLogs (
+-- 8. Bảng emaillogs
+CREATE TABLE IF NOT EXISTS emaillogs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userId INT NULL,
     recipientEmail VARCHAR(255) NOT NULL, 
@@ -123,27 +123,27 @@ CREATE TABLE IF NOT EXISTS EmailLogs (
     errorMessage TEXT NULL, 
     sentBy INT NOT NULL,
     sentAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE SET NULL,
-    FOREIGN KEY (sentBy) REFERENCES Users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (sentBy) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ✅ THÊM:  Indexes cho tối ưu query
-CREATE INDEX idx_email_logs_user ON EmailLogs(userId);
-CREATE INDEX idx_email_logs_status ON EmailLogs(status);
-CREATE INDEX idx_email_logs_sent_at ON EmailLogs(sentAt);
+CREATE INDEX idx_email_logs_user ON emaillogs(userId);
+CREATE INDEX idx_email_logs_status ON emaillogs(status);
+CREATE INDEX idx_email_logs_sent_at ON emaillogs(sentAt);
 
--- ✅ THÊM: Indexes cho Orders (để query nhanh hơn)
-CREATE INDEX idx_orders_payment_status ON Orders(paymentStatus);
-CREATE INDEX idx_orders_payment_method ON Orders(paymentMethod);
-CREATE INDEX idx_orders_user ON Orders(userId);
-CREATE INDEX idx_orders_status ON Orders(status);
+-- ✅ THÊM: Indexes cho orders (để query nhanh hơn)
+CREATE INDEX idx_orders_payment_status ON orders(paymentStatus);
+CREATE INDEX idx_orders_payment_method ON orders(paymentMethod);
+CREATE INDEX idx_orders_user ON orders(userId);
+CREATE INDEX idx_orders_status ON orders(status);
 
 -- =====================================================================
 -- BƯỚC 2: THÊM DỮ LIỆU MẪU (SEED DATA)
 -- =====================================================================
 
--- 1. Users
-INSERT INTO `Users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
+-- 1. users
+INSERT INTO `users` (`fullName`, `email`, `password`, `phone`, `address`, `role`) VALUES
 ('Quản Trị Viên', 'admin@email.com', '$2a$12$78cga50NK6qxk35cpjwlKetU9VJvTUpI0UhfinwAQdSUH/QyO3itO', '0987654321', '123 Đường Admin, Quận 1, TP.HCM', 'admin'),
 ('Nguyễn Văn An', 'nguyen.an@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0912345678', '111 Nguyễn Trãi, Quận Thanh Xuân, Hà Nội', 'customer'),
 ('Trần Thị Bích', 'tran.bich@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0923456789', '222 Lê Lợi, Quận Hải Châu, Đà Nẵng', 'customer'),
@@ -155,15 +155,15 @@ INSERT INTO `Users` (`fullName`, `email`, `password`, `phone`, `address`, `role`
 ('Bùi Thị Hạnh', 'bui.hanh@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0989012345', '888 Hùng Vương, Quận 6, TP.HCM', 'customer'),
 ('Phan Văn Kiên', 'phan.kien@email.com', '$2a$12$9NpdokzqzT5hBOCKYsfUNeCraPB.qJAM/SnC1iUhNb5WU.1tyX2Aq', '0901234567', '999 Quang Trung, Quận Gò Vấp, TP.HCM', 'customer');
 
--- 2. Categories
-INSERT INTO `Categories` (`id`, `name`, `description`) VALUES
+-- 2. categories
+INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 (1, 'Kem dưỡng da', 'Kem dưỡng da mang lại làn da mềm mịn, cấp ẩm sâu và giúp nuôi dưỡng vẻ rạng ngời từ sâu bên trong. '),
 (2, 'Sữa rửa mặt', 'Làm sạch sâu bụi bẩn và bã nhờn nhẹ nhàng, giúp lỗ chân lông thông thoáng mà vẫn giữ độ ẩm tự nhiên cho da.'),
 (3, 'Dầu gội', 'Chăm sóc mái tóc chắc khỏe từ gốc đến ngọn, phục hồi hư tổn và lưu lại hương thơm quyến rũ suốt ngày dài.'),
 (4, 'Sữa tắm', 'Nuôi dưỡng làn da cơ thể m��n màng, trắng sáng với chiết xuất thiên nhiên, mang lại cảm giác thư giãn sảng khoái.');
 
--- 3. Products (16 sản phẩm)
-INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
+-- 3. products (16 sản phẩm)
+INSERT INTO `products` (`id`, `name`, `description`, `price`, `stockQuantity`, `imageUrl`, `sku`, `dimensions`, `material`, `categoryId`) VALUES
 (1, 'Kem Dưỡng Goodal Làm Sáng Da', 'Cung cấp độ ẩm sâu, giúp da mềm mại và mịn màng suốt 24h, bảo vệ da khỏi tác hại của môi trường. ', 150000.00, 50, '/upload/kem-duong-da-1.jpg', 'KEM-DUONG-001', '50ml', 'Vitamin E, Nha đam', 1),
 (2, 'Kem Dưỡng Ẩm', 'Kem Dưỡng Ẩm, Làm Dịu Da Beyond Angel Aqua Moisture Cream 150ml.', 320000.00, 30, '/upload/kem-duong-am-2.jpg', 'KEM-DUONG-002', '30g', 'Bột ngọc trai', 1),
 (3, 'Kem Chống Lão Hóa Collagen', 'Bổ sung Collagen thủy phân giúp da săn chắc, giảm nếp nhăn và ngăn ngừa các dấu hiệu lão hóa sớm.', 450000.00, 25, '/upload/kem-duong-tre-hoa-da-3.jpg', 'KEM-DUONG-003', '50ml', 'Collagen, Peptide', 1),
@@ -181,8 +181,8 @@ INSERT INTO `Products` (`id`, `name`, `description`, `price`, `stockQuantity`, `
 (15, 'Sữa Tắm Hương Nước Hoa', 'Sữa Tắm Nước Hoa Mine Perfumed Shower Gel 470ML.', 160000.00, 40, '/upload/sua-tam-3.jpg', 'SUA-TAM-003', '400ml', 'Hạt mơ, Vitamin C', 4),
 (16, 'Sữa Tắm M.O.I', '(Phiên bản giới hạn) Sữa Tắm M.O.I Hương Nước Hoa Limited Edition Destiny Body Wash 250ml', 190000.00, 25, '/upload/sua-tam-4.jpg', 'SUA-TAM-004', '300ml', 'Gừng, Nghệ', 4);
 
--- 4. ProductImages (5 ảnh phụ cho mỗi sản phẩm)
-INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
+-- 4. productimages (5 ảnh phụ cho mỗi sản phẩm)
+INSERT INTO `productimages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 1
 (1, '/upload/kem-duong-da-1-1.jpg'), (1, '/upload/kem-duong-da-1-2.jpg'), (1, '/upload/kem-duong-da-1-3.jpg'), (1, '/upload/kem-duong-da-1-4.jpg'), (1, '/upload/kem-duong-da-1-5.jpg'),
 -- Sản phẩm 2
@@ -216,8 +216,8 @@ INSERT INTO `ProductImages` (`productId`, `imageUrl`) VALUES
 -- Sản phẩm 16
 (16, '/upload/sua-tam-4-1.jpg'), (16, '/upload/sua-tam-4-2.jpg'), (16, '/upload/sua-tam-4-3.jpg'), (16, '/upload/sua-tam-4-4.jpg'), (16, '/upload/sua-tam-4-1.jpg');
 
--- 5. EmailTemplates
-INSERT INTO EmailTemplates (name, subject, content, description) VALUES
+-- 5. emailtemplates
+INSERT INTO emailtemplates (name, subject, content, description) VALUES
 ('Chào mừng khách hàng mới', 'Chào mừng bạn đến với Cosmetics Shop! ', 
 '<h2>Xin chào {{customerName}}!</h2>
 <p>Chúng tôi rất vui mừng chào đón bạn đến với <strong>Cosmetics Shop</strong> - thiên đường mỹ phẩm chính hãng. </p>
@@ -277,7 +277,7 @@ BEGIN
         
         -- Lấy thông tin user
         SELECT address, fullName, phone INTO userAddress, userName, userPhone 
-        FROM Users WHERE id = randomUserId;
+        FROM users WHERE id = randomUserId;
         
         -- Chỉ tạo đơn nếu tìm thấy user
         IF userAddress IS NOT NULL THEN
@@ -297,7 +297,7 @@ BEGIN
             END IF;
 
             -- ✅ CẬP NHẬT: INSERT với paymentMethod, paymentStatus, phone, fullName
-            INSERT INTO Orders (
+            INSERT INTO orders (
                 userId, 
                 totalAmount, 
                 status, 
@@ -334,17 +334,17 @@ BEGIN
                 -- Chọn sản phẩm ngẫu nhiên (id 1-16)
                 SET randomProductId = FLOOR(1 + (RAND() * 16));
                 
-                SELECT price INTO productPrice FROM Products WHERE id = randomProductId;
+                SELECT price INTO productPrice FROM products WHERE id = randomProductId;
                 
                 SET randomQuantity = FLOOR(1 + (RAND() * 2));
                 
-                INSERT INTO OrderItems (orderId, productId, quantity, price)
+                INSERT INTO orderitems (orderId, productId, quantity, price)
                 VALUES (newOrderId, randomProductId, randomQuantity, productPrice);
                 
                 SET totalOrderAmount = totalOrderAmount + (productPrice * randomQuantity);
             END WHILE;
             
-            UPDATE Orders SET totalAmount = totalOrderAmount WHERE id = newOrderId;
+            UPDATE orders SET totalAmount = totalOrderAmount WHERE id = newOrderId;
         END IF;
         
     END WHILE;
@@ -359,31 +359,3 @@ CALL GenerateRandomOrders();
 DROP PROCEDURE IF EXISTS GenerateRandomOrders;
 
 COMMIT;
-
--- =====================================================================
--- ✅ QUERY ĐỂ KIỂM TRA DỮ LIỆU
--- =====================================================================
-
--- Xem đơn hàng với payment info
--- SELECT 
---     id, 
---     userId, 
---     totalAmount, 
---     status, 
---     paymentMethod, 
---     paymentStatus, 
---     fullName, 
---     phone,
---     createdAt
--- FROM Orders
--- ORDER BY createdAt DESC
--- LIMIT 10;
-
--- Thống kê theo payment method
--- SELECT 
---     paymentMethod, 
---     paymentStatus, 
---     COUNT(*) as count, 
---     SUM(totalAmount) as total
--- FROM Orders
--- GROUP BY paymentMethod, paymentStatus;
