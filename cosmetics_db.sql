@@ -129,14 +129,15 @@ CREATE TABLE IF NOT EXISTS emaillogs (
 
 -- ✅ THÊM:  Indexes cho tối ưu query
 CREATE INDEX idx_email_logs_user ON emaillogs(userId);
-CREATE INDEX idx_email_logs_status ON emaillogs(status);
 CREATE INDEX idx_email_logs_sent_at ON emaillogs(sentAt);
+-- CREATE INDEX idx_email_logs_status ON emaillogs(status); Vấn đề: 99% email sẽ là sent. Đánh index cho sent là lãng phí.
 
 -- ✅ THÊM: Indexes cho orders (để query nhanh hơn)
-CREATE INDEX idx_orders_payment_status ON orders(paymentStatus);
-CREATE INDEX idx_orders_payment_method ON orders(paymentMethod);
+-- CREATE INDEX idx_orders_payment_method ON orders(paymentMethod); Vấn đề: Nếu 80% đơn là COD, MySQL thấy phải lấy tận 80% dữ liệu. -> chậm hơn.
+-- CREATE INDEX idx_orders_payment_status ON orders(paymentStatus);  tương tự ở trên.
 CREATE INDEX idx_orders_user ON orders(userId);
 CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_products_price ON products(price); -- Cho chức năng lọc giá.
 
 -- =====================================================================
 -- BƯỚC 2: THÊM DỮ LIỆU MẪU (SEED DATA)

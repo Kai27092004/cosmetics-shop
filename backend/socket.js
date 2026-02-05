@@ -10,11 +10,7 @@ const initializeSocket = (server) => {
     io = socketIO(server, {
         cors: {
             origin: [
-                'http://localhost:5173',
-                'https://phatdev.vercel.app',
-                'https://main.d3tqdtxbh1bkio. amplifyapp.com',
-                'https://phatdev.id.vn',
-                'https://www.phatdev.id.vn'
+                'http://localhost:5173'
             ],
             credentials: true,
             methods: ['GET', 'POST']
