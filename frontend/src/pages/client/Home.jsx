@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../styles/custom.css';
+import ProductCarousel3D from '../../components/common/ProductCarousel3D';
+// import ProductCarousel3DSimple from '../../components/common/ProductCarousel3DSimple';
 
 // Dữ liệu sản phẩm tĩnh - không cần gọi API
 const MOCK_PRODUCTS = [
@@ -184,6 +186,72 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50">
+      {/* Three.js 3D Product Carousel Section - Redesigned */}
+      <section className="relative h-screen overflow-hidden bg-gradient-to-br from-pink-600 via-purple-700 to-indigo-800 flex flex-col">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-30">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-pink-500 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-500 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+
+        {/* Header - Tiêu đề ở trên */}
+        <div className="relative z-20 pt-20 pb-8 px-4">
+          <div className="text-center max-w-4xl mx-auto fade-in-up">
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl">
+              <span className="block bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 bg-clip-text text-transparent">
+                Mỹ Phẩm Cao Cấp
+              </span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 font-bold drop-shadow-lg">
+              ✨ Xoay 360° để khám phá sản phẩm ✨
+            </p>
+          </div>
+        </div>
+
+        {/* Three.js Canvas - Hình ảnh ở giữa, không bị che */}
+        <div className="relative z-10 flex-1 min-h-0">
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-full">
+              <div className="text-white text-2xl font-bold animate-pulse">Đang tải sản phẩm 3D...</div>
+            </div>
+          }>
+            <ProductCarousel3D />
+          </Suspense>
+        </div>
+
+        {/* Footer - Buttons và hướng dẫn ở dưới */}
+        <div className="relative z-20 pb-20 pt-8 px-4">
+          <div className="text-center max-w-4xl mx-auto fade-in-up">
+            <p className="text-base md:text-lg text-white/80 mb-6">
+              Kéo chuột để xoay • Cuộn để zoom • Di chuột lên sản phẩm để xem hiệu ứng
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/products">
+                <button className="px-10 py-4 bg-white text-purple-600 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-pink-500/50 hover:scale-105 transition-all duration-300">
+                  �️ Mua Sắm Ngay
+                </button>
+              </Link>
+              <Link to="/contact">
+                <button className="px-10 py-4 bg-white/10 backdrop-blur-md border-2 border-white/50 text-white rounded-2xl font-bold text-lg shadow-2xl hover:bg-white/20 hover:scale-105 transition-all duration-300">
+                  📞 Liên Hệ Ngay
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
+          <div className="text-white/60 text-center">
+            <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section with 3D Effects */}
       <section
         ref={heroRef}
@@ -307,7 +375,7 @@ export default function Home() {
 
           {/* Product Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {MOCK_PRODUCTS.map((product, index) => (
+            {MOCK_PRODUCTS.map((product) => (
               <div key={product.id} className="product-grid-item">
                 <div className="card-3d h-full">
                   {/* Custom Product Card */}

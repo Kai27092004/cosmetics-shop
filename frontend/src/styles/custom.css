@@ -464,3 +464,81 @@ html {
 .Toastify__close-button:hover {
     color: #6b7280 !important;
 }
+
+/* Three.js Section Animations */
+@keyframes delay-1000 {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes delay-500 {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+.delay-1000 {
+    animation: delay-1000 3s ease-in-out infinite;
+}
+
+.delay-500 {
+    animation: delay-500 3s ease-in-out infinite 0.5s;
+}
+
+/* Scroll Indicator Animation */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0) translateX(-50%);
+    }
+    50% {
+        transform: translateY(-10px) translateX(-50%);
+    }
+}
+
+.animate-bounce {
+    animation: bounce 2s ease-in-out infinite;
+}
+
+/* Demo 3D Modal Animations */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Modal backdrop blur effect */
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Smooth transitions for modal */
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 3D Canvas container */
+canvas {
+    outline: none;
+    touch-action: none;
+}
