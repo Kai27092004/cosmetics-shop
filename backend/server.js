@@ -3,7 +3,16 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('./config/passport');
 const http = require('http');
+const helmet = require('helmet');
 const { initializeSocket } = require('./socket');
+const { 
+    generalLimiter, 
+    authLimiter, 
+    orderLimiter, 
+    emailLimiter, 
+    chatbotLimiter, 
+    uploadLimiter 
+} = require('./middleware/security.middleware');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +21,26 @@ const db = require('./models');
 
 // Khởi tạo Socket.IO
 const io = initializeSocket(server);
+
+// ===================================
+// 🛡️ BẢO MẬT - HELMET
+// ===================================
+// Helmet giúp bảo vệ app bằng cách set các HTTP headers bảo mật
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+    crossOriginEmbedderPolicy: false, // Cho phép embed từ nguồn khác
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Cho phép CORS
+}));
+
+// Ẩn thông tin server
+app.disable('x-powered-by');
 
 // CẤU HÌNH CORS
 const allowedOrigins = [
@@ -38,8 +67,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Giới hạn kích thước request body để tránh DoS
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
@@ -70,19 +100,30 @@ db.sequelize.sync()
 
 // Routes
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Furniture Shop Backend API!' });
+    res.json({ 
+        message: 'Welcome to Furniture Shop Backend API!',
+        version: '1.0.0',
+        status: 'running'
+    });
 });
 
-// Sử dụng các routes đã định nghĩa
-app.use('/api/auth', require('./routes/auth.routes'));
+// ===================================
+// 🛡️ ÁP DỤNG RATE LIMITING
+// ===================================
+
+// Rate limiter chung cho toàn bộ API
+app.use('/api/', generalLimiter);
+
+// Rate limiter riêng cho từng route
+app.use('/api/auth', authLimiter, require('./routes/auth.routes'));
 app.use('/api/products', require('./routes/product.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/categories', require('./routes/category.routes'));
-app.use('/api/orders', require('./routes/order.routes'));
+app.use('/api/orders', orderLimiter, require('./routes/order.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
-app.use('/api/chatbot', require('./routes/chatbot.routes'));
-app.use('/api/email', require('./routes/email.routes'));
-app.use('/api/upload', require('./routes/upload.routes'));
+app.use('/api/chatbot', chatbotLimiter, require('./routes/chatbot.routes'));
+app.use('/api/email', emailLimiter, require('./routes/email.routes'));
+app.use('/api/upload', uploadLimiter, require('./routes/upload.routes'));
 require('./routes/payment.routes')(app);
 
 // Xuất biến app ra để file khác (lambda. js) có thể dùng
@@ -94,5 +135,10 @@ if (require.main === module) {
     server.listen(PORT, () => {
         console.log(`🚀 Server is running on port ${PORT}`);
         console.log(`🔌 WebSocket is ready on port ${PORT}`);
+        console.log(`🛡️ Security features enabled:`);
+        console.log(`   ✅ Helmet - HTTP headers protection`);
+        console.log(`   ✅ Rate Limiting - DDoS protection`);
+        console.log(`   ✅ CORS - Cross-origin protection`);
+        console.log(`   ✅ Body size limit - 10MB max`);
     });
 }
